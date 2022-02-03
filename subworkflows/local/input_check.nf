@@ -13,30 +13,40 @@ workflow INPUT_CHECK {
     main:
     SAMPLESHEET_CHECK ( samplesheet )
         .splitCsv ( header:true, sep:',' )
-        .map { create_fastq_channels(it) }
-        .set { reads }
+        .map { get_sample_info (it, params.genomes ) }
+        .map { it -> [ it[0], it[1], it[2], it[3], it[4] ] }
+        .set { ch_sample }
 
     emit:
-    reads // channel: [ val(meta), [ reads ] ]
+    ch_sample // channel: [ meta, variant_type, genome, bench_set, truth_set ]
 }
 
-// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def create_fastq_channels(LinkedHashMap row) {
+// Function to check files exist and resolve genome is not provided
+def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
     def meta = [:]
-    meta.id           = row.sample
-    meta.single_end   = row.single_end.toBoolean()
+    meta.id  = sample.sample
+
+    // Check bench and truth set files exist
+    if (!file(sample.bench_set).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> Bench set vcf file does not exist!\n${sample.bench_set}"
+    }
+    if (!file(sample.truth_set).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> Truth set vcf file does not exist!\n${sample.truth_set}"
+    }
+
+    // Check genome and resolve if needed
+    def fasta = false
+    
+     if (sample.genome) {
+        if (genomeMap && genomeMap.containsKey(sample.genome)) {
+            fasta = file(genomeMap[sample.genome].fasta, checkIfExists: true)
+        } else {
+            fasta = file(sample.genome, checkIfExists: true)
+        }
+    }
 
     def array = []
-    if (!file(row.fastq_1).exists()) {
-        exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.fastq_1}"
-    }
-    if (meta.single_end) {
-        array = [ meta, [ file(row.fastq_1) ] ]
-    } else {
-        if (!file(row.fastq_2).exists()) {
-            exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row.fastq_2}"
-        }
-        array = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
-    }
+    array = [ meta, sample.variant_type, fasta, sample.bench_set, sample.truth_set ]
     return array
+
 }
