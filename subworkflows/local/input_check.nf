@@ -22,6 +22,7 @@ workflow INPUT_CHECK {
 }
 
 // Function to check files exist and resolve genome is not provided
+
 def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
     def meta = [:]
     meta.id  = sample.sample
