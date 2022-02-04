@@ -11,8 +11,11 @@ process HAPPY_BENCHMARK {
     tuple val(meta), val(variant_type), path(bench), path(truth), path(fasta), path(fai)
 
     output:
-    path "*"                      , emit: happy_results
-    path "versions.yml"           , emit: versions
+    path "*metrics.json.gz"  , emit: happy_metrics
+    path "*.roc.*"           , emit: happy_rocs
+    path "*runinfo.json"     , emit: happy_runinfo
+    path "*summary.csv"      , emit: happy_summary
+    path "*versions.yml"     , emit: versions
 
     script:
     """
@@ -25,7 +28,7 @@ process HAPPY_BENCHMARK {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         hap.py: \$( echo 'hap.py 0.3.14' )
-        python: \$( echo 'python 2.7.17' )
+        python: \$(python --version 2>&1 | sed 's/^.*Python //; s/ :: Anaconda, Inc.*//' )
     END_VERSIONS
     """
 }
