@@ -1,21 +1,33 @@
 /*
 ========================================================================================
-    VALIDATE INPUTS
+    LOCAL PARAMETER VALUES
 ========================================================================================
 */
 
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
-// Validate input parameters
-WorkflowBench.initialise(params, log)
+/*
+========================================================================================
+    VALIDATE INPUTS
+========================================================================================
+*/
 
-// TODO nf-core: Add all file path parameters for the pipeline to the list below
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.fasta ]
+checkPathParamList = [ params.input, params.multiqc_config ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-// Check mandatory parameters
+// Check mandatory parameters (missing protocol or profile will exit the run.)
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+
+// Function to check if running offline
+def isOffline() {
+    try {
+        return NXF_OFFLINE as Boolean
+    }
+    catch( Exception e ) {
+        return false
+    }
+}
 
 /*
 ========================================================================================
@@ -23,7 +35,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 ========================================================================================
 */
 
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_config        = file("$baseDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 /*
@@ -32,18 +44,16 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 ========================================================================================
 */
 
-// Don't overwrite global params.modules, create a copy instead and use that within the main script.
-def modules = params.modules.clone()
-
 //
 // MODULE: Local to the pipeline
-//
-include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
+//             
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( options: [:] )
+include { INPUT_CHECK     } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME  } from '../subworkflows/local/prepare_genome'
+include { BENCHMARK_SHORT } from '../subworkflows/local/benchmark_short'
 
 /*
 ========================================================================================
@@ -51,14 +61,12 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( opti
 ========================================================================================
 */
 
-def multiqc_options   = modules['multiqc']
-multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
-
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC  } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
-include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
+include { FASTQC                      } from '../modules/nf-core/modules/fastqc/main' 
+include { MULTIQC                     } from '../modules/nf-core/modules/multiqc/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
 /*
 ========================================================================================
@@ -79,8 +87,31 @@ workflow BENCH {
     INPUT_CHECK (
         ch_input
     )
+    ch_sample = INPUT_CHECK.out.ch_sample
 
-    INPUT_CHECK.out.ch_sample.view()
+    ch_sample
+        .map { it -> [ it[0], it [2] ] }
+        .set { ch_fasta }
+    
+    //
+    // SUBWORKFLOW: Prepare genome giles
+    //
+    PREPARE_GENOME (
+        ch_fasta
+    )
+    ch_fasta_fai = PREPARE_GENOME.out.ch_fasta_fai
+
+    ch_sample
+        .join ( ch_fasta_fai, by: [0] )
+        .map { it -> [ it[0], it [1], it[3], it [4], it[5], it [6]] }
+        .set { ch_sample_index }
+
+    //
+    // SUBWORKFLOW: Benchamark short variants with hap.py
+    //
+    BENCHMARK_SHORT (
+        ch_sample_index
+    )
 
     //
     // MODULE: Run FastQC
@@ -93,17 +124,6 @@ workflow BENCH {
     //
     // MODULE: Pipeline reporting
     //
-    ch_software_versions
-       .map { it -> if (it) [ it.baseName, it ] }
-       .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
-
-    GET_SOFTWARE_VERSIONS (
-        ch_software_versions.map { it }.collect()
-    )
 
     //
     // MODULE: MultiQC

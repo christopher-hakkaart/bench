@@ -34,10 +34,10 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
         exit 1, "ERROR: Please check input samplesheet -> Truth set vcf file does not exist!\n${sample.truth_set}"
     }
 
-    // Check genome and resolve if needed
+    // Resolve fasta file if using iGenomes
     def fasta = false
-    
-     if (sample.genome) {
+
+    if (sample.genome) {
         if (genomeMap && genomeMap.containsKey(sample.genome)) {
             fasta = file(genomeMap[sample.genome].fasta, checkIfExists: true)
         } else {
@@ -45,8 +45,5 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
         }
     }
 
-    def array = []
-    array = [ meta, sample.variant_type, fasta, sample.bench_set, sample.truth_set ]
-    return array
-
+    return [ meta, sample.variant_type, fasta, sample.bench_set, sample.truth_set ]
 }
