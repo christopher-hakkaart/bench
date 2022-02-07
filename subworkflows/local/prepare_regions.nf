@@ -20,4 +20,3 @@ workflow PREPARE_REGIONS {
     ch_bed_tbi
     
 }
-

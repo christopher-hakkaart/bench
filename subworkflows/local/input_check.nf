@@ -49,15 +49,15 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
     // Resolve high confidence regions if using iGenomes
     def regions = false
 
-    if (!sample.genome == null && !params.skip_highconf ) {
+    if (sample.high_conf) {
         regions = file( sample.high_conf )
     } else {
-        if ( sample.genome == "GRCh37" ) {
+        if ( sample.genome == "GRCh37" && sample.variant_type == "SHORT") {
             regions = file ( "https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh37/HG001_GRCh37_1_22_v4.2.1_benchmark.bed" )
-        } else if ( sample.genome == "GRCh38" ) {
+        } else if ( sample.genome == "GRCh38" && sample.variant_type == "SHORT" ) {
             regions = file ( "https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh37/HG001_GRCh37_1_22_v4.2.1_benchmark.bed" )
         } else {
-            exit 1, "ERROR: Please check input samplesheet -> High confidence region for the genome do not exist!\n${sample.genome}"
+            exit 1, "ERROR: Please check input samplesheet -> High confidence region for the genome do not exist!\n${sample.genome}\n${sample.high_conf}"
         }
     }
 

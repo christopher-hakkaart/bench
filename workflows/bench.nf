@@ -93,7 +93,7 @@ workflow BENCH {
         .multiMap { it ->
             fasta_ch: [ it[0], it[2] ]
             bench_ch: [ it[0], it[3] ]
-            truth_ch:  [ it[0], it[4] ]
+            truth_ch: [ it[0], it[4] ]
             bed_ch:   [ it[0], it[5] ]
             }
         .set { sample_ch }

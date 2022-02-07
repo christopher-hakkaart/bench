@@ -8,7 +8,6 @@ include { REMOVE_CHR  } from '../../modules/local/remove_chr'        addParams( 
 include { TABIX_BGZIP } from '../../modules/local/tabix_bgzip'       addParams( options: params.options )
 
 
-
 workflow PREPARE_BENCH {
     take:
     bench_ch // meta and path
