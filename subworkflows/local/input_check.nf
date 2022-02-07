@@ -14,11 +14,11 @@ workflow INPUT_CHECK {
     SAMPLESHEET_CHECK ( samplesheet )
         .splitCsv ( header:true, sep:',' )
         .map { get_sample_info (it, params.genomes ) }
-        .map { it -> [ it[0], it[1], it[2], it[3], it[4] ] }
+        .map { it -> [ it[0], it[1], it[2], it[3], it[4], it[5] ] }
         .set { ch_sample }
 
     emit:
-    ch_sample // channel: [ meta, variant_type, genome, bench_set, truth_set ]
+    ch_sample // channel: [ meta, variant_type, genome, bench_set, truth_set, high_conf ]
 }
 
 // Function to check files exist and resolve genome is not provided
@@ -46,5 +46,20 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
         }
     }
 
-    return [ meta, sample.variant_type, fasta, sample.bench_set, sample.truth_set ]
+    // Resolve high confidence regions if using iGenomes
+    def regions = false
+
+    if (!sample.genome == null && !params.skip_highconf ) {
+        regions = file( sample.high_conf )
+    } else {
+        if ( sample.genome == "GRCh37" ) {
+            regions = file ( "https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh37/HG001_GRCh37_1_22_v4.2.1_benchmark.bed" )
+        } else if ( sample.genome == "GRCh38" ) {
+            regions = file ( "https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh37/HG001_GRCh37_1_22_v4.2.1_benchmark.bed" )
+        } else {
+            exit 1, "ERROR: Please check input samplesheet -> High confidence region for the genome do not exist!\n${sample.genome}"
+        }
+    }
+
+    return [ meta, sample.variant_type, fasta, sample.bench_set, sample.truth_set, regions ]
 }

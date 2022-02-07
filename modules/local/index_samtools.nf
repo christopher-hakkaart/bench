@@ -1,4 +1,4 @@
-process INDEX_REFERENCE {
+process INDEX_SAMTOOLS {
 
     conda     (params.enable_conda ? "bioconda::samtools=1.10" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

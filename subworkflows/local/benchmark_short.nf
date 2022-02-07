@@ -12,11 +12,11 @@ workflow BENCHMARK_SHORT {
 
     main:
     HAPPY_BENCHMARK ( ch_sample )
-    ch_happy_metrics = HAPPY_BENCHMARK.out.happy_metrics
-    ch_happy_rocs = HAPPY_BENCHMARK.out.happy_rocs
-    ch_happy_runinfo = HAPPY_BENCHMARK.out.happy_runinfo
-    ch_happy_summary = HAPPY_BENCHMARK.out.happy_summary
-    happy_version = HAPPY_BENCHMARK.out.versions
+        ch_happy_metrics = HAPPY_BENCHMARK.out.happy_metrics
+        ch_happy_rocs = HAPPY_BENCHMARK.out.happy_rocs
+        ch_happy_runinfo = HAPPY_BENCHMARK.out.happy_runinfo
+        ch_happy_summary = HAPPY_BENCHMARK.out.happy_summary
+        happy_version = HAPPY_BENCHMARK.out.versions
 
     emit:
     ch_happy_metrics

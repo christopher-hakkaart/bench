@@ -40,9 +40,10 @@ def check_samplesheet(file_in, file_out):
     """
     This function checks that the samplesheet follows the following structure:
 
-    sample,variant_type,genome,bench_set,truth_set
-    SAMPLE,SHORT,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz
-    SAMPLE,STRUCTURAL,GRCH38,SAMPLE.vcf.gz,TRUTH.vcf.gz
+    sample,variant_type,genome,bench_set,truth_set,high_conf
+    SAMPLE1,SHORT,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,REGIONS.bed
+    SAMPLE2,STRUCTURAL,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,REGIONS.bed
+    SAMPL3,SHORT,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,REGIONS.bed
 
     For an example see:
     https://raw.githubusercontent.com/christopher-hakkaart/testdata/test_benchmark.csv
@@ -52,9 +53,9 @@ def check_samplesheet(file_in, file_out):
     with open(file_in, "r") as fin:
 
         ## Check header
-        MIN_COLS = 4
+        MIN_COLS = 5
         # TODO nf-core: Update the column names for the input samplesheet
-        HEADER = ["sample", "variant_type", "genome", "bench_set", "truth_set"]
+        HEADER = ["sample", "variant_type", "genome", "bench_set", "truth_set", "high_conf"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print("ERROR: Please check samplesheet header -> {} != {}".format(",".join(header), ",".join(HEADER)))
@@ -80,7 +81,7 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample, variant_type, genome, bench_set, truth_set  = lspl[: len(HEADER)]
+            sample, variant_type, genome, bench_set, truth_set, high_conf  = lspl[: len(HEADER)]
             sample = sample.replace(" ", "_")
             if not sample:
                 print_error("Sample entry has not been specified!", "Line", line)
@@ -110,9 +111,21 @@ def check_samplesheet(file_in, file_out):
                             "Line",
                             line,
                         )
+            
+            ## Check input bed file extensions
+            for hc in [high_conf]:
+                if hc:
+                    if hc.find(" ") != -1:
+                        print_error("High confidence regions file contains spaces!", "Line", line)
+                    if not hc.endswith(".bed.gz") and bt.endswith(".bed"):
+                        print_error(
+                            "High confidence regions file does not have extension '.bed.gz' or '.bed'!",
+                            "Line",
+                            line,
+                        )
 
             ## Create sample mapping dictionary = { sample: [ genome, bench_set, truth_set ] }
-            sample_info = [variant_type, genome, bench_set, truth_set]
+            sample_info = [variant_type, genome, bench_set, truth_set, high_conf]
 
             if sample not in sample_dict:
                 sample_dict[sample] = [sample_info]
@@ -127,7 +140,7 @@ def check_samplesheet(file_in, file_out):
         out_dir = os.path.dirname(file_out)
         make_dir(out_dir)
         with open(file_out, "w") as fout:
-            fout.write(",".join(["sample", "variant_type", "genome", "bench_set", "truth_set"]) + "\n")
+            fout.write(",".join(["sample", "variant_type", "genome", "bench_set", "truth_set", "high_conf"]) + "\n")
             for sample in sorted(sample_dict.keys()):
 
                 ## Check that multiple runs of the same sample are of the same datatype

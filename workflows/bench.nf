@@ -53,6 +53,9 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 //
 include { INPUT_CHECK     } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME  } from '../subworkflows/local/prepare_genome'
+include { PREPARE_REGIONS } from '../subworkflows/local/prepare_regions'
+include { PREPARE_TRUTH    } from '../subworkflows/local/prepare_truth'
+include { PREPARE_BENCH   } from '../subworkflows/local/prepare_bench'
 include { BENCHMARK_SHORT } from '../subworkflows/local/benchmark_short'
 
 /*
@@ -64,7 +67,6 @@ include { BENCHMARK_SHORT } from '../subworkflows/local/benchmark_short'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC                      } from '../modules/nf-core/modules/fastqc/main' 
 include { MULTIQC                     } from '../modules/nf-core/modules/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
@@ -82,44 +84,65 @@ workflow BENCH {
     ch_software_versions = Channel.empty()
 
     //
-    // SUBWORKFLOW: Read in samplesheet, validate and stage input files
+    // SUBWORKFLOW: Read in samplesheet, validate, and stage input files
     //
     INPUT_CHECK (
         ch_input
     )
-    ch_sample = INPUT_CHECK.out.ch_sample
+    INPUT_CHECK.out.ch_sample
+        .multiMap { it ->
+            fasta_ch: [ it[0], it[2] ]
+            bench_ch: [ it[0], it[3] ]
+            truth_ch:  [ it[0], it[4] ]
+            bed_ch:   [ it[0], it[5] ]
+            }
+        .set { sample_ch }
 
-    ch_sample
-        .map { it -> [ it[0], it [2] ] }
-        .set { ch_fasta }
-    
     //
-    // SUBWORKFLOW: Prepare genome giles
+    // SUBWORKFLOW: Prepare truth file
+    //
+    PREPARE_TRUTH (
+        sample_ch.truth_ch
+    )
+    ch_truth = PREPARE_TRUTH.out.ch_truth
+
+    //
+    // SUBWORKFLOW: Prepare bench file
+    //
+    PREPARE_BENCH (
+        sample_ch.bench_ch
+    )
+    ch_bench = PREPARE_BENCH.out.ch_bench
+
+    //
+    // SUBWORKFLOW: Prepare genome files
     //
     PREPARE_GENOME (
-        ch_fasta
+        sample_ch.fasta_ch
     )
-    ch_fasta_fai = PREPARE_GENOME.out.ch_fasta_fai
+    ch_fasta = PREPARE_GENOME.out.ch_fasta_fai
 
-    ch_sample
-        .join ( ch_fasta_fai, by: [0] )
-        .map { it -> [ it[0], it [1], it[3], it [4], it[5], it [6]] }
-        .set { ch_sample_index }
+    //
+    // SUBWORKFLOW: Prepare high confidence regions
+    //
+    PREPARE_REGIONS (
+        sample_ch.bed_ch
+    )
+    ch_bed = PREPARE_REGIONS.out.ch_bed_tbi
 
     //
     // SUBWORKFLOW: Benchamark short variants with hap.py
-    //
+    ch_truth
+        .join ( ch_bench, by: [0] )
+        .join ( ch_fasta, by: [0] )
+        .join ( ch_bed, by: [0] )
+        .set { ch_sample }
+
     BENCHMARK_SHORT (
-        ch_sample_index
+        ch_sample
     )
 
-    //
-    // MODULE: Run FastQC
-    //
-    //FASTQC (
-    //    INPUT_CHECK.out.reads
-    //)
-    //ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
+    ch_happy_summary = BENCHMARK_SHORT.out.ch_happy_summary
 
     //
     // MODULE: Pipeline reporting

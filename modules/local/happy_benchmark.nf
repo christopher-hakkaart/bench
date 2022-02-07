@@ -8,7 +8,7 @@ process HAPPY_BENCHMARK {
         'quay.io/biocontainers/hap.py:0.3.14--py27h5c5a3ab_0' }"
 
     input:
-    tuple val(meta), val(variant_type), path(bench), path(truth), path(fasta), path(fai)
+    tuple val(meta), path(bench), path(truth), path(fasta), path(fai), path(bed), path(tbi)
 
     output:
     path "*metrics.json.gz"  , emit: happy_metrics
@@ -23,6 +23,7 @@ process HAPPY_BENCHMARK {
         $truth \\
         $bench \\
         -r $fasta \\
+        -f $bed \\
         -o ${meta.id}
 
     cat <<-END_VERSIONS > versions.yml
