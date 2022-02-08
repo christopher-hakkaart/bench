@@ -51,12 +51,12 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK     } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME  } from '../subworkflows/local/prepare_genome'
-include { PREPARE_REGIONS } from '../subworkflows/local/prepare_regions'
-include { PREPARE_TRUTH    } from '../subworkflows/local/prepare_truth'
-include { PREPARE_BENCH   } from '../subworkflows/local/prepare_bench'
-include { BENCHMARK_SHORT } from '../subworkflows/local/benchmark_short'
+include { INPUT_CHECK                 } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME              } from '../subworkflows/local/prepare_genome'
+include { PREPARE_REGIONS             } from '../subworkflows/local/prepare_regions'
+include { PREPARE_TRUTH               } from '../subworkflows/local/prepare_truth'
+include { PREPARE_BENCH               } from '../subworkflows/local/prepare_bench'
+include { BENCHMARK_SHORT             } from '../subworkflows/local/benchmark_short'
 
 /*
 ========================================================================================
@@ -92,19 +92,12 @@ workflow BENCH {
     INPUT_CHECK.out.ch_sample
         .multiMap { it ->
             fasta_ch: [ it[0], it[2] ]
+            type_ch:  [ it[0], it[1] ]
             bench_ch: [ it[0], it[3] ]
             truth_ch: [ it[0], it[4] ]
             bed_ch:   [ it[0], it[5] ]
             }
         .set { sample_ch }
-
-    //
-    // SUBWORKFLOW: Prepare truth file
-    //
-    PREPARE_TRUTH (
-        sample_ch.truth_ch
-    )
-    ch_truth = PREPARE_TRUTH.out.ch_truth
 
     //
     // SUBWORKFLOW: Prepare bench file
@@ -113,6 +106,14 @@ workflow BENCH {
         sample_ch.bench_ch
     )
     ch_bench = PREPARE_BENCH.out.ch_bench
+
+    //
+    // SUBWORKFLOW: Prepare truth file
+    //
+    PREPARE_TRUTH (
+        sample_ch.truth_ch
+    )
+    ch_truth = PREPARE_TRUTH.out.ch_truth
 
     //
     // SUBWORKFLOW: Prepare genome files
@@ -141,7 +142,6 @@ workflow BENCH {
     BENCHMARK_SHORT (
         ch_sample
     )
-
     ch_happy_summary = BENCHMARK_SHORT.out.ch_happy_summary
 
     //

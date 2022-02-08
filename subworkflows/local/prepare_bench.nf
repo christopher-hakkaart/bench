@@ -10,13 +10,19 @@ include { TABIX_BGZIP } from '../../modules/local/tabix_bgzip'       addParams( 
 
 workflow PREPARE_BENCH {
     take:
-    bench_ch // meta and path
+    bench_ch // 
 
     main:
+    /*
+     * Remove chromosome from bench file
+     */
     REMOVE_CHR (
         bench_ch
     )
 
+    /*
+     * BGZIP bench file
+     */
     TABIX_BGZIP (
         REMOVE_CHR.out.vcf
     )

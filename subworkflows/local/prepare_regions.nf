@@ -4,7 +4,7 @@
 
 params.options = [:]
 
-include { TABIX_BGZIPTABIX } from '../../modules/local/bgziptabix' addParams( options: params.options )
+include { TABIX_BGZIPTABIX } from '../../modules/local/tabix_bgziptabix' addParams( options: params.options )
 
 workflow PREPARE_REGIONS {
     take:

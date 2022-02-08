@@ -53,35 +53,21 @@ def check_samplesheet(file_in, file_out):
     with open(file_in, "r") as fin:
 
         ## Check header
-        MIN_COLS = 5
-        # TODO nf-core: Update the column names for the input samplesheet
+        MIN_COLS = 6
         HEADER = ["sample", "variant_type", "genome", "bench_set", "truth_set", "high_conf"]
+
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print("ERROR: Please check samplesheet header -> {} != {}".format(",".join(header), ",".join(HEADER)))
             sys.exit(1)
 
-        ## Check sample entries
+        ## Check all sample entries
         for line in fin:
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
-            # Check valid number of columns per row
-            if len(lspl) < len(HEADER):
-                print_error(
-                    "Invalid number of columns (minimum = {})!".format(len(HEADER)),
-                    "Line",
-                    line,
-                )
-            num_cols = len([x for x in lspl if x])
-            if num_cols < MIN_COLS:
-                print_error(
-                    "Invalid number of populated columns (minimum = {})!".format(MIN_COLS),
-                    "Line",
-                    line,
-                )
+            sample, variant_type, genome, bench_set, truth_set, high_conf  = lspl[: len(HEADER)]
 
             ## Check sample name entries
-            sample, variant_type, genome, bench_set, truth_set, high_conf  = lspl[: len(HEADER)]
             sample = sample.replace(" ", "_")
             if not sample:
                 print_error("Sample entry has not been specified!", "Line", line)

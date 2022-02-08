@@ -1,5 +1,5 @@
 process TABIX_BGZIPTABIX {
-    tag "$meta.id"
+    tag "$input"
     label 'process_medium'
 
     conda (params.enable_conda ? 'bioconda::tabix=1.11' : null)

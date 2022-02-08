@@ -1,4 +1,6 @@
 process INDEX_SAMTOOLS {
+    tag "$fasta"
+    label 'process_low'
 
     conda     (params.enable_conda ? "bioconda::samtools=1.10" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
