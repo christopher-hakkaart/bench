@@ -4,17 +4,27 @@
 
 params.options = [:]
 
-include { TABIX_BGZIPTABIX } from '../../modules/local/tabix_bgziptabix' addParams( options: params.options )
+include { TABIX_BGZIP } from '../../modules/local/tabix_bgzip' addParams( options: params.options )
+include { TABIX_TABIX } from '../../modules/local/tabix_tabix' addParams( options: params.options )
 
 workflow PREPARE_REGIONS {
     take:
     ch_bed // meta and path
 
     main:
-    TABIX_BGZIPTABIX (
+    /*
+     * Compress bed
+     */
+    TABIX_BGZIP (
         ch_bed
     )
-    ch_bed_tbi = TABIX_BGZIPTABIX.out.gz_tbi
+    /*
+     * Index compressed bed
+     */
+    TABIX_TABIX (
+        TABIX_BGZIP.out.gz
+    )
+    ch_bed_tbi = TABIX_TABIX.out.gz_tbi
 
     emit:
     ch_bed_tbi

@@ -12,7 +12,7 @@ workflow PREPARE_GENOME {
 
     main:
     /*
-     * Make chromosome sizes file
+     * Index reference if needed
      */
     SAMTOOLS_FAIDX ( ch_fasta )
     ch_fai = SAMTOOLS_FAIDX.out.fai

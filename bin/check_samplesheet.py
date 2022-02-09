@@ -41,9 +41,10 @@ def check_samplesheet(file_in, file_out):
     This function checks that the samplesheet follows the following structure:
 
     sample,variant_type,genome,bench_set,truth_set,high_conf
-    SAMPLE1,SHORT,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,REGIONS.bed
-    SAMPLE2,STRUCTURAL,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,REGIONS.bed
-    SAMPL3,SHORT,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,REGIONS.bed
+    WORKFLOW1,SHORT,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,REGIONS.bed
+    WORKFLOW2,STRUCTURAL,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,
+    WORKFLOW3,SHORT,GRCH37,SAMPLE.vcf.gz,,
+    WORKFLOW4,SHORT,GRCH38,SAMPLE.vcf.gz,,
 
     For an example see:
     https://raw.githubusercontent.com/christopher-hakkaart/testdata/test_benchmark.csv
@@ -110,7 +111,7 @@ def check_samplesheet(file_in, file_out):
                             line,
                         )
 
-            ## Create sample mapping dictionary = { sample: [ genome, bench_set, truth_set ] }
+            ## Create sample mapping dictionary = { sample: [ variant_type, genome, bench_set, truth_set, high_conf ] }
             sample_info = [variant_type, genome, bench_set, truth_set, high_conf]
 
             if sample not in sample_dict:
@@ -135,7 +136,7 @@ def check_samplesheet(file_in, file_out):
 
                 for idx, val in enumerate(sample_dict[sample]):
                     fout.write(",".join(["{}_T{}".format(sample, idx + 1)] + val) + "\n")
-                    # TODO: check T into truthset name when functionality added.
+                    # TODO: add check truthset name.
     else:
         print_error("No entries to process!", "Samplesheet: {}".format(file_in))
 

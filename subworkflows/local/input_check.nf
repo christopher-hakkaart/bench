@@ -22,7 +22,6 @@ workflow INPUT_CHECK {
 }
 
 // Function to check files exist and resolve genome is not provided
-
 def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
     def meta = [:]
     meta.id  = sample.sample
@@ -32,7 +31,7 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
         exit 1, "ERROR: Please check input samplesheet -> Bench set vcf file does not exist!\n${sample.bench_set}"
     }
 
-    // Check truth set files exist
+    // Resolve truth set file if not provided
     if (sample.truth_set) {
         truth_set = file( sample.truth_set )
     } else {
@@ -47,7 +46,7 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
         }
     }
     
-    // Resolve fasta file if using iGenomes
+    // Resolve fasta file if using iGenomes if not provided
     def fasta = false
 
     if (sample.genome) {
@@ -58,7 +57,7 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
         }
     }
 
-    // Resolve high confidence regions
+    // Resolve high confidence regions if not provided
     def regions = false
 
     if (sample.high_conf) {
