@@ -23,8 +23,6 @@ workflow INPUT_CHECK {
 
 // Function to check files exist and resolve genome is not provided
 def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
-    def meta = [:]
-    meta.id  = sample.sample
 
     // Check bench set files exist
     if (!file(sample.bench_set).exists()) {
@@ -73,6 +71,14 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
             exit 1, "ERROR: Please check input samplesheet -> High confidence region for the reference genome do not exist!\n${sample.genome}"
         }
     }
+
+    // Make new meta with simple information
+    def meta = [:]
+    meta.id  = sample.sample
+    meta.variant_type = sample.variant_type
+    meta.genome  = file(sample.genome).simpleName
+    meta.truth_set  = file(truth_set).simpleName
+    meta.high_conf  = file(regions).simpleName
 
     return [ meta, sample.variant_type, fasta, sample.bench_set, truth_set, regions ]
 }

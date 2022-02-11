@@ -92,12 +92,13 @@ workflow BENCH {
     INPUT_CHECK.out.ch_sample
         .multiMap { it ->
             fasta_ch: [ it[0], it[2] ]
-            type_ch:  [ it[0], it[1] ]
             bench_ch: [ it[0], it[3] ]
             truth_ch: [ it[0], it[4] ]
             bed_ch:   [ it[0], it[5] ]
             }
         .set { sample_ch }
+
+    INPUT_CHECK.out.ch_sample.view()
 
     //
     // SUBWORKFLOW: Prepare bench file
@@ -129,15 +130,15 @@ workflow BENCH {
     PREPARE_REGIONS (
         sample_ch.bed_ch
     )
-    ch_bed = PREPARE_REGIONS.out.ch_bed_tbi
+    ch_bed = PREPARE_REGIONS.out.ch_bed
 
     //
     // SUBWORKFLOW: Benchamark short variants with hap.py
-    ch_truth
-        .join ( ch_bench, by: [0] )
+    ch_bench
+        .join ( ch_truth, by: [0] )
         .join ( ch_fasta, by: [0] )
         .join ( ch_bed, by: [0] )
-        .set { ch_sample }
+    .set { ch_sample }
 
     BENCHMARK_SHORT (
         ch_sample

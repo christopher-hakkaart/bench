@@ -1,6 +1,6 @@
-process TABIX_BGZIP {
+process TABIX_TABIX {
     tag "$meta.id"
-    label 'process_low'
+    label 'process_medium'
 
     conda (params.enable_conda ? 'bioconda::tabix=1.11' : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -8,20 +8,19 @@ process TABIX_BGZIP {
         'quay.io/biocontainers/tabix:1.11--hdfd78af_0' }"
 
     input:
-    tuple val(meta), path(vcf)
+    tuple val(meta), path(tab)
 
     output:
-    tuple val(meta), path("*.gz"), emit: gz
-    path  "versions.yml"         , emit: versions
+    tuple val(meta), path("*.tbi"), emit: tbi
+    path  "versions.yml"          , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = vcf.baseName
     """
-    bgzip -c $args $vcf > ${prefix}.vcf.gz
+    tabix $args $tab
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

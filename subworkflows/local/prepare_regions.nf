@@ -1,32 +1,36 @@
 //
 // Get benchset files
 //
+params.genome_options = [:]
 
-params.options = [:]
-
-include { TABIX_BGZIP } from '../../modules/local/tabix_bgzip' addParams( options: params.options )
-include { TABIX_TABIX } from '../../modules/local/tabix_tabix' addParams( options: params.options )
+include { TABIX_BGZIP } from '../../modules/nf-core/modules/tabix/bgzip/main'       addParams( options: params.genome_options )
+include { TABIX_TABIX } from '../../modules/nf-core/modules/tabix/tabix/main'       addParams( options: params.genome_options )
 
 workflow PREPARE_REGIONS {
     take:
-    ch_bed // meta and path
+    bed_ch // meta and path
 
     main:
     /*
      * Compress bed
      */
     TABIX_BGZIP (
-        ch_bed
+        bed_ch
     )
+    bed_gz = TABIX_BGZIP.out.gz
+
     /*
      * Index compressed bed
      */
     TABIX_TABIX (
-        TABIX_BGZIP.out.gz
+        bed_gz 
     )
-    ch_bed_tbi = TABIX_TABIX.out.gz_tbi
+    bed_tbi = TABIX_TABIX.out.tbi
+
+    bed_gz
+    .join(bed_tbi, by: [0])
+    .set { ch_bed }
 
     emit:
-    ch_bed_tbi
-    
+    ch_bed
 }
