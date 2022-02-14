@@ -37,10 +37,10 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
             truth_set = file ( "https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh37/HG001_GRCh37_1_22_v4.2.1_benchmark.vcf.gz" )
         } else if ( sample.genome == "GRCh38" && sample.variant_type == "SHORT" ) {
             truth_set = file ( "https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz" )
-        } else if ( sample.genome == "GRCh38" && sample.variant_type == "STRUCTURAL" ) {
+        } else if ( sample.genome == "GRCh37" && sample.variant_type == "STRUCTURAL" ) {
             truth_set = file ( "https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.vcf.gz" )
         } else {
-            exit 1, "ERROR: Please check input samplesheet -> Truth set vcf file does not exist!\n${sample.genome}"
+            exit 1, "ERROR: Please check input samplesheet -> Truth set vcf file does not exist for ${sample.variant_type} and ${sample.genome}!\n"
         }
     }
     
@@ -65,16 +65,17 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
             regions = file ( "https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh37/HG001_GRCh37_1_22_v4.2.1_benchmark.bed" )
         } else if ( sample.genome == "GRCh38" && sample.variant_type == "SHORT" ) {
             regions = file ( "https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed" )
-        } else if ( sample.genome == "GRCh38" && sample.variant_type == "STRUCTURAL" ) {
+        } else if ( sample.genome == "GRCh37" && sample.variant_type == "STRUCTURAL" ) {
             regions = file ( "https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.bed" )
         } else {
-            exit 1, "ERROR: Please check input samplesheet -> High confidence region for the reference genome do not exist!\n${sample.genome}"
+            exit 1, "ERROR: Please check input samplesheet -> High confidence region for ${sample.variant_type} and ${sample.genome}!"
         }
     }
 
     // Make new meta with simple information
     def meta = [:]
     meta.id  = sample.sample
+    meta.workflow = sample.sample
     meta.variant_type = sample.variant_type
     meta.genome  = file(sample.genome).simpleName
     meta.truth_set  = file(truth_set).simpleName

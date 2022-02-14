@@ -7,6 +7,7 @@ params.genome_options = [:]
 
 include { REMOVE_CHR  } from '../../modules/local/remove_chr'                       addParams( options: params.options )
 include { TABIX_BGZIP } from '../../modules/nf-core/modules/tabix/bgzip/main'       addParams( options: params.genome_options )
+include { TABIX_TABIX } from '../../modules/nf-core/modules/tabix/tabix/main'       addParams( options: params.genome_options )
 
 
 workflow PREPARE_TRUTH {
@@ -19,10 +20,10 @@ workflow PREPARE_TRUTH {
      */
     truth_ch.map{ meta, truth ->
         new_meta = meta.clone()
-        new_meta.id = truth.simpleName
-        new_meta.workflow = meta.id
+        new_meta.id = meta.truth_set
         [new_meta, truth]
-        }.set{truth_renamed}
+        }
+    .set{truth_renamed}
 
     /*
      * Remove chr prefix from chromosomes
@@ -39,15 +40,29 @@ workflow PREPARE_TRUTH {
         truth_nochr
     )
     truth_gz = TABIX_BGZIP.out.gz
-    
+
+    /*
+     * TABIX truth file
+     */
+    TABIX_TABIX (
+        truth_gz
+    )
+    truth_tbi = TABIX_TABIX.out.tbi
+
     /*
      * Revert rename using meta
      */
-    truth_gz.map{ meta, truth ->
-        new_meta = [:]
+    truth_gz
+        .join(truth_tbi, by: [0] )
+        .set { truth_gz_tbi }
+    
+
+    truth_gz_tbi.map{ meta, gz, tbi ->
+        new_meta = meta.clone()
         new_meta.id = meta.workflow
-        [new_meta, truth]
-        }.set{ch_truth}
+        [new_meta, gz, tbi]
+        }
+    .set{ch_truth}
 
     emit:
     ch_truth

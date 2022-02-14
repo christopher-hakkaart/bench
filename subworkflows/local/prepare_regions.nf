@@ -27,8 +27,9 @@ workflow PREPARE_REGIONS {
     )
     bed_tbi = TABIX_TABIX.out.tbi
 
-    bed_gz
-    .join(bed_tbi, by: [0])
+    bed_ch
+    .join(bed_gz, by: [0] )
+    .join(bed_tbi, by: [0] )
     .set { ch_bed }
 
     emit:

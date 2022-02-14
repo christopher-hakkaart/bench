@@ -8,7 +8,7 @@ process TRUVARI_BENCHMARK {
         'quay.io/biocontainers/truvari:0.1.2018.08.10--hdfd78af_2' }"
 
     input:
-    tuple val(meta), path(bench), path(truth), path(fasta), path(fai), path(bed), path(tbi)
+    tuple val(meta), path(bench_gz), path(bench_tbi), path(truth_gz), path(truth_tbi), path(fasta), path(fai), path(bed), path(bed_gz), path(tbi)
 
     output:
     path "*.vcf"             , emit: truvari_vcf
@@ -19,18 +19,11 @@ process TRUVARI_BENCHMARK {
     script:
     """
     truvari \\
-        $truth \\
-        $bench \\
-        -r $fasta \\
-        -f $bed \\
-        -o ${meta.id}
-    
-    truvari bench \\
-    -b $truth \\
-    -c $bench \\
-    -f $fasta \\ no zipped .fa
+    -b $truth_gz \\
+    -c $bench_gz \\
+    -f $fasta \\
     -o ${meta.id} \\
-    --includebed $bed \\ not zipped .bed
+    --includebed $bed \\
     --passonly
 
     cat <<-END_VERSIONS > versions.yml

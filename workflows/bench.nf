@@ -57,6 +57,7 @@ include { PREPARE_REGIONS             } from '../subworkflows/local/prepare_regi
 include { PREPARE_TRUTH               } from '../subworkflows/local/prepare_truth'
 include { PREPARE_BENCH               } from '../subworkflows/local/prepare_bench'
 include { BENCHMARK_SHORT             } from '../subworkflows/local/benchmark_short'
+include { BENCHMARK_SV                } from '../subworkflows/local/benchmark_sv'
 
 /*
 ========================================================================================
@@ -91,14 +92,13 @@ workflow BENCH {
     )
     INPUT_CHECK.out.ch_sample
         .multiMap { it ->
+            type_ch:  [ it[0], it[1] ]
             fasta_ch: [ it[0], it[2] ]
             bench_ch: [ it[0], it[3] ]
             truth_ch: [ it[0], it[4] ]
             bed_ch:   [ it[0], it[5] ]
             }
         .set { sample_ch }
-
-    INPUT_CHECK.out.ch_sample.view()
 
     //
     // SUBWORKFLOW: Prepare bench file
@@ -134,16 +134,35 @@ workflow BENCH {
 
     //
     // SUBWORKFLOW: Benchamark short variants with hap.py
+    //
+
     ch_bench
         .join ( ch_truth, by: [0] )
         .join ( ch_fasta, by: [0] )
         .join ( ch_bed, by: [0] )
     .set { ch_sample }
 
+
+
+    ch_sample
+    .branch { it ->
+        short_ch: it[0].variant_type == 'SHORT'
+        sv_ch:    it[0].variant_type == 'STRUCTURAL'
+        }
+        .set{ch_sample_type}
+
     BENCHMARK_SHORT (
-        ch_sample
-    )
-    ch_happy_summary = BENCHMARK_SHORT.out.ch_happy_summary
+        ch_sample_type.short_ch
+        )
+        ch_happy_summary = BENCHMARK_SHORT.out.ch_happy_summary
+
+
+    BENCHMARK_SV (
+        ch_sample_type.sv_ch
+        )
+        ch_truvari_summary = BENCHMARK_SV.out.ch_truvari_summary
+
+   
 
     //
     // MODULE: Pipeline reporting
