@@ -92,7 +92,7 @@ workflow BENCH {
     )
     INPUT_CHECK.out.ch_sample
         .multiMap { it ->
-            type_ch:  [ it[0], it[1] ]
+            //type_ch:  [ it[0], it[1] ]
             fasta_ch: [ it[0], it[2] ]
             bench_ch: [ it[0], it[3] ]
             truth_ch: [ it[0], it[4] ]
