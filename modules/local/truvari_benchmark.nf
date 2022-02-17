@@ -13,14 +13,14 @@ process TRUVARI_BENCHMARK {
     tuple val(meta), path(bench_gz), path(bench_tbi), path(truth_gz), path(truth_tbi), path(fasta), path(fai), path(bed), path(bed_gz), path(tbi)
 
     output:
-    path "${meta.id}/*.vcf"  , emit: truvari_vcf
-    path "${meta.id}/*log*"           , emit: truvari_log
-    path "${meta.id}/*summary.txt"       , emit: truvari_summary
-    path "*versions.yml"     , emit: versions
+    tuple val(meta), path("${meta.id}/*.vcf")        , emit: truvari_vcf
+    tuple val(meta), path("${meta.id}/*log*")        , emit: truvari_log
+    tuple val(meta), path("${meta.id}/*summary.txt") , emit: truvari_summary
+    tuple val(meta), path("*versions.yml")           , emit: versions
 
     script:
     """
-    python3 -m pip install Truvari
+    python3 -m pip install truvari==3.0.0 
 
     truvari bench \\
     -b $truth_gz \\

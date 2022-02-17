@@ -29,6 +29,7 @@ if (length(args) < 2) {
 }
 # default output file
 workflowname <- args[1]
+cat(workflowname)
 path         <- args[2]
 
 ################################################
