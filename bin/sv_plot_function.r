@@ -28,9 +28,8 @@ if (length(args) < 2) {
   stop("Please input the meta.id and the truvari_summary channel", call.=FALSE)
 }
 # default output file
-workflowname <- args[1]
-cat(workflowname)
-path         <- args[2]
+path_summary <- args[1]
+workflowname <- args[2]
 
 ################################################
 ## CREATE BACKGROUND PLOTTING FUNCTION        ##
@@ -144,7 +143,7 @@ backgroundF1 <- ggplot() +
 ## READ SUMMARY YAML                          ##
 ################################################
 
-dat <- suppressWarnings(read_yaml(file = 'W:/users/ahhakkc1/projects/SV_Benchmark/WGGC/results_GHGA/results/summary.txt'))
+dat <- suppressWarnings(read_yaml(file = path_summary))
 
 ################################################
 ## PLOT PR                                    ##
@@ -155,13 +154,15 @@ all<-backgroundF1 + geom_point(data=as.data.frame(dat), aes(x=as.numeric(recall)
   guides(colour = guide_legend(ncol = 1)) +
   ggtitle( workflowname ,)
   
-svg(paste("SummaryPlot_", workflowname, ".svg", sep=""),height=10, width=10)
+svg(paste("summary_plot_", workflowname, ".svg", sep=""),height=10, width=10)
 all
 dev.off()
 
 ################################################
 ## MAKE CSV                                   ##
 ################################################
-
-write.csv(x = as.data.frame(dat),file = paste("SummaryPlot_",workflowname,".csv",sep=""))
+dat <- as.data.frame(dat)
+colnames(dat)<-toupper(colnames(dat))
+rownames(dat)<-workflowname
+write.csv(x = as.data.frame(dat),file = paste("summary_table_",workflowname,".csv",sep=""))
           
