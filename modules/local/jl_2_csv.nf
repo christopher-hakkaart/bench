@@ -14,7 +14,7 @@ process JL_2_CSV {
     tuple val(meta), path(jl)
 
     output:
-    path '*.csv'
+    tuple val(meta), path("*csv")        , emit: csv
 
     script: // This script is bundled with the pipeline, in nf-core/bench/bin/
     """

@@ -1,4 +1,4 @@
-process SV_PLOT {
+process PLOT_SV_SIMPLE {
     tag "$meta.id"
     label 'process_medium'
 
@@ -18,7 +18,7 @@ process SV_PLOT {
 
     script:
     """
-    sv_plot_function.r ${truvari_summary} ${meta.id}
+    sv_simple_report.r ${truvari_summary} ${meta.id}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

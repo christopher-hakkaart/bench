@@ -96,7 +96,7 @@ plotF1 <- function(min = 0.1,
 F1df <- plotF1()
 
 ################################################
-## READ SUMMARY YAML                          ##
+## CREATE BACKGROUND                          ##
 ################################################
 
 annoF1 <- F1df %>% group_by(group) %>% top_n(1, x)
@@ -154,7 +154,7 @@ all<-backgroundF1 + geom_point(data=as.data.frame(dat), aes(x=as.numeric(recall)
   guides(colour = guide_legend(ncol = 1)) +
   ggtitle( workflowname ,)
   
-svg(paste("summary_plot_", workflowname, ".svg", sep=""),height=10, width=10)
+svg(paste("plot_simple_pr_", workflowname, ".svg", sep=""),height=10, width=10)
 all
 dev.off()
 
@@ -164,5 +164,5 @@ dev.off()
 dat <- as.data.frame(dat)
 colnames(dat)<-toupper(colnames(dat))
 rownames(dat)<-workflowname
-write.csv(x = as.data.frame(dat),file = paste("summary_table_",workflowname,".csv",sep=""))
+write.csv(x = as.data.frame(dat),file = paste("table_simple_",workflowname,".csv",sep=""))
           

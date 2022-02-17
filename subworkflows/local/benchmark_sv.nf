@@ -5,8 +5,9 @@
 params.options = [:]
 
 include { TRUVARI_BENCHMARK } from '../../modules/local/truvari_benchmark' addParams( options: params.options )
-include { SV_PLOT           } from '../../modules/local/sv_plot'           addParams( options: params.options )
+include { PLOT_SV_SIMPLE    } from '../../modules/local/plot_sv_simple'    addParams( options: params.options )
 include { JL_2_CSV          } from '../../modules/local/jl_2_csv'          addParams( options: params.options )
+include { PLOT_SV_COMPLEX    } from '../../modules/local/plot_sv_complex'  addParams( options: params.options )
 
 workflow BENCHMARK_SV {
     take:
@@ -28,15 +29,16 @@ workflow BENCHMARK_SV {
     sv_plot_version = Channel.empty()
 
     if(params.simple_report) {
-        SV_PLOT ( ch_truvari_summary )
-            ch_truvari_table = SV_PLOT.out.truvari_table
-            ch_truvari_svg = SV_PLOT.out.truvari_plots
-            sv_plot_version = SV_PLOT.out.versions
+        PLOT_SV_SIMPLE ( ch_truvari_summary )
+            ch_truvari_table = PLOT_SV_SIMPLE.out.truvari_table
+            ch_truvari_svg = PLOT_SV_SIMPLE.out.truvari_plots
+            sv_plot_version = PLOT_SV_SIMPLE.out.versions
     }
 
     ch_truvari_giab_jl.view()
     if(params.complex_report) {
         JL_2_CSV ( ch_truvari_giab_jl )
+        PLOT_SV_COMPLEX ( JL_2_CSV.out.csv )
     }
 
     emit:
