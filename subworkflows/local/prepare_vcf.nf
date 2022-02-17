@@ -10,60 +10,61 @@ include { TABIX_BGZIP } from '../../modules/nf-core/modules/tabix/bgzip/main'   
 include { TABIX_TABIX } from '../../modules/nf-core/modules/tabix/tabix/main'       addParams( options: params.genome_options )
 
 
-workflow PREPARE_TRUTH {
+workflow PREPARE_VCF {
     take:
-    truth_ch //
+    vcf_ch //
 
     main:
     /*
      * Rename using meta
      */
-    truth_ch.map{ meta, truth ->
+    vcf_ch.map{ meta, vcf ->
         new_meta = meta.clone()
-        new_meta.id = meta.truth_set
-        [new_meta, truth]
+        new_meta.id = file(vcf).simpleName == meta.truth_set ? meta.truth_set : meta.id
+        [new_meta, vcf]
         }
-    .set{truth_renamed}
+    .set{vcf_renamed}
+    vcf_renamed.view()
 
     /*
      * Remove chr prefix from chromosomes
      */
     REMOVE_CHR (
-        truth_renamed
+        vcf_renamed
     )
-    truth_nochr = REMOVE_CHR.out.vcf
+    vcf_nochr = REMOVE_CHR.out.vcf
 
     /*
-     * BGZIP truth file
+     * BGZIP vcf file
      */
     TABIX_BGZIP (
-        truth_nochr
+        vcf_nochr
     )
-    truth_gz = TABIX_BGZIP.out.gz
+    vcf_gz = TABIX_BGZIP.out.gz
 
     /*
-     * TABIX truth file
+     * TABIX vcf file
      */
     TABIX_TABIX (
-        truth_gz
+        vcf_gz
     )
-    truth_tbi = TABIX_TABIX.out.tbi
+    vcf_tbi = TABIX_TABIX.out.tbi
 
     /*
      * Revert rename using meta
      */
-    truth_gz
-        .join(truth_tbi, by: [0] )
-        .set { truth_gz_tbi }
+    vcf_gz
+        .join(vcf_tbi, by: [0] )
+        .set { vcf_gz_tbi }
     
 
-    truth_gz_tbi.map{ meta, gz, tbi ->
+    vcf_gz_tbi.map{ meta, gz, tbi ->
         new_meta = meta.clone()
         new_meta.id = meta.workflow
         [new_meta, gz, tbi]
         }
-    .set{ch_truth}
+    .set{ch_vcf}
 
     emit:
-    ch_truth
+    ch_vcf
 }
