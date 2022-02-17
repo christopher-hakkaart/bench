@@ -16,7 +16,9 @@ process TRUVARI_BENCHMARK {
     tuple val(meta), path("${meta.id}/*.vcf")        , emit: truvari_vcf
     tuple val(meta), path("${meta.id}/*log*")        , emit: truvari_log
     tuple val(meta), path("${meta.id}/*summary.txt") , emit: truvari_summary
-    tuple val(meta), path("*versions.yml")           , emit: versions
+    //tuple val(meta), path("${meta.id}/*report.txt")  , emit: truvari_giab_report
+    tuple val(meta), path("${meta.id}/*.jl")         , emit: truvari_giab_jl
+    path("*versions.yml")                            , emit: versions
 
     script:
     def typeignore = params.typeignore ? "--typeignore" : ""
