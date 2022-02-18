@@ -29,7 +29,7 @@ suppressWarnings(library(cowplot))
 args = commandArgs(trailingOnly = TRUE)
 
 if (length(args) < 2) {
-  stop("Please input the giab.csv file and meta.id", call.=FALSE)
+  stop("Please input the giab.csv file and meta.id", call. = FALSE)
 }
 
 giab     <- read.csv(args[1])
@@ -94,7 +94,7 @@ plotF1 <- function(min = 0.1,
   }
   
   
-  return(df[maxval,])
+  return(df[maxval, ])
 }
 
 F1df <- plotF1()
@@ -138,14 +138,15 @@ backgroundF1 <- ggplot() +
     color = "grey",
     size = 4
   ) +
-  theme(axis.text=element_text(size=20),
-        axis.title=element_text(size=20),
-        plot.title = element_text(size=30,hjust = 0.5)
-        )
+  theme(
+    axis.text = element_text(size = 20),
+    axis.title = element_text(size = 20),
+    plot.title = element_text(size = 30, hjust = 0.5)
+  )
 
 
 ################################################
-## TIDY DATA FOR NICER OUTPUTS                ##
+## TIDY SIZE BINS FOR NICER OUTPUTS           ##
 ################################################
 
 # Order factor size bins
@@ -188,6 +189,12 @@ giab$szbin <-
   )
 
 ################################################
+## RESTRICT TO DEL AND INS                    ##
+################################################
+
+giab <- giab[giab$svtype %in% c("DEL", "INS"), ]
+
+################################################
 ## MAKE DATA FRAMES                           ##
 ################################################
 
@@ -222,7 +229,8 @@ giab_type <- giab %>% group_by(state, svtype) %>%
     recall = 0,
     F1 = 0
   ))
-colnames(giab_type) <- c("Type", "Workflow", "Precision", "Recall", "F1")
+colnames(giab_type) <-
+  c("Type", "Workflow", "Precision", "Recall", "F1")
 
 giab_size <- giab %>% group_by(state, svtype, szbin) %>%
   summarize(count = n()) %>%
@@ -239,7 +247,8 @@ giab_size <- giab %>% group_by(state, svtype, szbin) %>%
     recall = 0,
     F1 = 0
   ))
-colnames(giab_size) <- c("Type","Workflow","Size","Precision", "Recall", "F1")
+colnames(giab_size) <-
+  c("Type", "Workflow", "Size", "Precision", "Recall", "F1")
 
 ################################################
 ## WRITE CSVS                                 ##
@@ -271,7 +280,33 @@ b <-
   facet_grid(state ~ .)
 
 c <-
-backgroundF1 + geom_point(data=giab_size, aes(x=as.numeric(Recall), y=as.numeric(Precision),col=Size, shape=Type), alpha=30, cex=3) +
+  backgroundF1 + geom_point(
+    data = giab_size,
+    aes(
+      x = as.numeric(Recall),
+      y = as.numeric(Precision),
+      col = Type,
+      shape = Size
+    ),
+    alpha = 30,
+    cex = 3
+  ) +
+  ylab("Precision") +
+  xlab("Recall") +
+  theme_classic(base_size = 12) +
+  guides(colour = guide_legend(ncol = 1))
+
+d <-
+  backgroundF1 + geom_point(
+    data = giab_type,
+    aes(
+      x = as.numeric(Recall),
+      y = as.numeric(Precision),
+      shape = Type
+    ),
+    alpha = 30,
+    cex = 3
+  ) +
   ylab("Precision") +
   xlab("Recall") +
   theme_classic(base_size = 12) +
@@ -280,14 +315,34 @@ backgroundF1 + geom_point(data=giab_size, aes(x=as.numeric(Recall), y=as.numeric
 ################################################
 ## SAVE PLOTS                                 ##
 ################################################
-svg(paste("plot_complex_counts_",workflow,".svg",sep=""),height=10, width=10)
+svg(
+  paste("plot_complex_n_", workflow, ".svg", sep = ""),
+  height = 10,
+  width = 10
+)
 a
 dev.off()
 
-svg(paste("plot_complex_type_",workflow,".svg",sep=""),height=10, width=10)
+svg(
+  paste("plot_complex_ntype_", workflow, ".svg", sep = ""),
+  height = 10,
+  width = 10
+)
 b
 dev.off()
 
-svg(paste("plot_complex_pr_",workflow,".svg",sep=""),height=10, width=10)
+svg(
+  paste("plot_complex_pr_", workflow, ".svg", sep = ""),
+  height = 10,
+  width = 10
+)
 c
+dev.off()
+
+svg(
+  paste("plot_complex_prtype_", workflow, ".svg", sep = ""),
+  height = 10,
+  width = 10
+)
+d
 dev.off()
