@@ -107,7 +107,6 @@ workflow BENCH {
         sample_ch.bench_ch
     )
     ch_bench = PREPARE_BENCH.out.ch_vcf
-    //ch_bench.view()
 
     //
     // SUBWORKFLOW: Prepare truth file
@@ -116,7 +115,6 @@ workflow BENCH {
         sample_ch.truth_ch
     )
     ch_truth = PREPARE_TRUTH.out.ch_vcf
-    //ch_truth.view()
 
     //
     // SUBWORKFLOW: Prepare genome files
@@ -153,7 +151,6 @@ workflow BENCH {
         }
         .set{ch_sample_type}
 
-    //ch_sample_type.sv_ch.view()
     BENCHMARK_SHORT (
         ch_sample_type.short_ch
         )

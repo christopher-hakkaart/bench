@@ -24,7 +24,6 @@ workflow PREPARE_VCF {
         [new_meta, vcf]
         }
     .set{vcf_renamed}
-    vcf_renamed.view()
 
     /*
      * Remove chr prefix from chromosomes
