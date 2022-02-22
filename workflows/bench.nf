@@ -54,8 +54,8 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 include { INPUT_CHECK                 } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME              } from '../subworkflows/local/prepare_genome'
 include { PREPARE_REGIONS             } from '../subworkflows/local/prepare_regions'
-include { PREPARE_TRUTH               } from '../subworkflows/local/prepare_truth'
-include { PREPARE_BENCH               } from '../subworkflows/local/prepare_bench'
+include { PREPARE_VCF as PREPARE_TRUTH               } from '../subworkflows/local/prepare_vcf'
+include { PREPARE_VCF as PREPARE_BENCH               } from '../subworkflows/local/prepare_vcf'
 include { BENCHMARK_SHORT             } from '../subworkflows/local/benchmark_short'
 include { BENCHMARK_SV                } from '../subworkflows/local/benchmark_sv'
 
@@ -106,7 +106,7 @@ workflow BENCH {
     PREPARE_BENCH (
         sample_ch.bench_ch
     )
-    ch_bench = PREPARE_BENCH.out.ch_bench
+    ch_bench = PREPARE_BENCH.out.ch_vcf
 
     //
     // SUBWORKFLOW: Prepare truth file
@@ -114,7 +114,7 @@ workflow BENCH {
     PREPARE_TRUTH (
         sample_ch.truth_ch
     )
-    ch_truth = PREPARE_TRUTH.out.ch_truth
+    ch_truth = PREPARE_TRUTH.out.ch_vcf
 
     //
     // SUBWORKFLOW: Prepare genome files

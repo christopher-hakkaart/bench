@@ -31,7 +31,7 @@ process TRUVARI_BENCHMARK {
     def includebed = params.includebed ? "--includebed $bed" : ""
 
     """
-    python3 -m pip install truvari==3.0.0 
+    python3 -m pip install Truvari==3.0.0
 
     truvari bench \\
     -b $truth_gz \\
