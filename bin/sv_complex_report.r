@@ -6,11 +6,11 @@
 
 #Analysis script for making csv tables and plots
 #
-#> pr_all_{workflowname}.csv
-#> pr_type_{workflowname}.csv
-#> pr_sizes_{workflowname}.csv
-#> plot_counts_{workflowname).svg
-#> plot_type_{workflowname).svg
+# pr_all_{workflowname}.csv
+# pr_type_{workflowname}.csv
+# pr_sizes_{workflowname}.csv
+# plot_counts_{workflowname).svg
+# plot_type_{workflowname).svg
 #
 
 ################################################
