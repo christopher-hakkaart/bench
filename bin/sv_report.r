@@ -4,13 +4,17 @@
 ## COMPLEX REPORT ANALYSIS                    ##
 ################################################
 
-#Analysis script for making csv tables and plots
+# Analysis script for making csv tables and plots:
 #
-#> pr_all_{workflowname}.csv
-#> pr_type_{workflowname}.csv
-#> pr_sizes_{workflowname}.csv
-#> plot_counts_{workflowname).svg
-#> plot_type_{workflowname).svg
+#
+# table_complex_all_{workflowname}.csv
+# table_complex_sizes_{workflowname}.csv
+# table_complex_type_{workflowname}.csv
+#
+# plot_complex_state_type_{workflowname}.svg
+# plot_complex_state_type_size_{workflowname}.svg
+# plot_complex_pr_type_{workflowname}.svg
+# plot_complex_pr_type_size_{workflowname}.svg
 #
 
 ################################################
@@ -49,7 +53,7 @@ plotF1 <- function(min = 0.1,
   result_y <- c()
   result_label <- c()
   
-  zahler <- 0
+  z <- 0
   label <- as.numeric(min)
   
   calcf1 <- function(x, y) {
@@ -61,14 +65,14 @@ plotF1 <- function(min = 0.1,
       y <- calcf1(f1tmp, x)
       
       if (0 < y && y <= 1.5) {
-        zahler <- zahler + 1
+        z <- z + 1
         if (y > 1) {
           y <- 1
           
         }
-        result_x[zahler] <- x
-        result_y[zahler] <- y
-        result_label[zahler] <- label
+        result_x[z] <- x
+        result_y[z] <- y
+        result_label[z] <- label
       }
       
     }
@@ -198,7 +202,7 @@ giab <- giab[giab$svtype %in% c("DEL", "INS"), ]
 ## MAKE DATA FRAMES                           ##
 ################################################
 
-giab_all <- giab %>% group_by(state) %>%
+giab_complex_all <- giab %>% group_by(state) %>%
   summarize(count = n()) %>%
   spread(key = state, value = count) %>%
   summarize(
@@ -212,9 +216,9 @@ giab_all <- giab %>% group_by(state) %>%
     recall = 0,
     F1 = 0
   ))
-colnames(giab_all) <- c("Workflow", "Precision", "Recall", "F1")
+colnames(giab_complex_all) <- c("Workflow", "Precision", "Recall", "F1")
 
-giab_type <- giab %>% group_by(state, svtype) %>%
+giab_complex_type <- giab %>% group_by(state, svtype) %>%
   summarize(count = n()) %>%
   spread(key = state, value = count) %>%
   summarize(
@@ -229,10 +233,10 @@ giab_type <- giab %>% group_by(state, svtype) %>%
     recall = 0,
     F1 = 0
   ))
-colnames(giab_type) <-
+colnames(giab_complex_type) <-
   c("Type", "Workflow", "Precision", "Recall", "F1")
 
-giab_size <- giab %>% group_by(state, svtype, szbin) %>%
+giab_complex_size <- giab %>% group_by(state, svtype, szbin) %>%
   summarize(count = n()) %>%
   spread(key = state, value = count) %>%
   summarize(
@@ -247,61 +251,50 @@ giab_size <- giab %>% group_by(state, svtype, szbin) %>%
     recall = 0,
     F1 = 0
   ))
-colnames(giab_size) <-
+colnames(giab_complex_size) <-
   c("Type", "Workflow", "Size", "Precision", "Recall", "F1")
 
 ################################################
 ## WRITE CSVS                                 ##
 ################################################
-write.csv(giab_all,
+
+write.csv(giab_complex_all,
           paste("table_complex_all_", workflow, ".csv", sep = ""))
-write.csv(giab_type,
+write.csv(giab_complex_type,
           paste("table_complex_type_", workflow, ".csv", sep = ""))
-write.csv(giab_size,
-          paste("table_complex_sizes_", workflow, ".csv", sep = ""))
+write.csv(giab_complex_size,
+          paste("table_complex_size_", workflow, ".csv", sep = ""))
 
 ################################################
 ## MAKE PLOTS                                 ##
 ################################################
 
-a <-
+complex_state_type <-
   ggplot(subset(giab, state %in% c("tp", "fp", "fn")), aes(fill = svtype, x = state)) +
   geom_bar(position = 'dodge', color = "black") +
+  scale_x_discrete(drop=FALSE) +
+  scale_fill_discrete(drop=FALSE) +
   ylab("Count") +
   xlab("State") +
-  theme_classic(base_size = 12)
+  theme_classic(base_size = 12) # Variant counts
 
-b <-
+complex_state_type_size <-
   ggplot(subset(giab, state %in% c("tp", "fp", "fn")), aes(fill = svtype, x = szbin)) +
   geom_bar(position = 'dodge', color = "black") +
+  scale_x_discrete(drop=FALSE) + 
+  scale_fill_discrete(drop=FALSE) +
   ylab("Count") +
   xlab("Size bin") +
-  theme_classic(base_size = 12) +
-  facet_grid(state ~ .)
+  facet_grid(state ~ .) +
+  theme_classic(base_size = 12) # Variant counts by type
 
-c <-
+complex_pr_type <-
   backgroundF1 + geom_point(
-    data = giab_size,
+    data = giab_complex_type,
     aes(
       x = as.numeric(Recall),
       y = as.numeric(Precision),
       col = Type,
-      shape = Size
-    ),
-    alpha = 30,
-    cex = 3
-  ) +
-  ylab("Precision") +
-  xlab("Recall") +
-  theme_classic(base_size = 12) +
-  guides(colour = guide_legend(ncol = 1))
-
-d <-
-  backgroundF1 + geom_point(
-    data = giab_type,
-    aes(
-      x = as.numeric(Recall),
-      y = as.numeric(Precision),
       shape = Type
     ),
     alpha = 30,
@@ -312,37 +305,54 @@ d <-
   theme_classic(base_size = 12) +
   guides(colour = guide_legend(ncol = 1))
 
+complex_pr_type_size <-
+  backgroundF1 + geom_point(
+    data = giab_complex_size,
+    aes(
+      x = as.numeric(Recall),
+      y = as.numeric(Precision),
+      col = Size,
+      shape = Type
+    ),
+    alpha = 30,
+    cex = 3
+  ) +
+  ylab("Precision") +
+  xlab("Recall") +
+  guides(colour = guide_legend(ncol = 1)) +
+  theme_classic(base_size = 12) # Variant counts by type
+
 ################################################
 ## SAVE PLOTS                                 ##
 ################################################
 svg(
-  paste("plot_complex_n_", workflow, ".svg", sep = ""),
-  height = 10,
-  width = 10
+  paste("plot_complex_state_type_", workflow, ".svg", sep = ""),
+  height = 8,
+  width = 8
 )
-a
+complex_state_type
 dev.off()
 
 svg(
-  paste("plot_complex_ntype_", workflow, ".svg", sep = ""),
-  height = 10,
-  width = 10
+  paste("plot_complex_state_type_size_", workflow, ".svg", sep = ""),
+  height = 8,
+  width = 8
 )
-b
+complex_state_type_size
 dev.off()
 
 svg(
-  paste("plot_complex_pr_", workflow, ".svg", sep = ""),
-  height = 10,
-  width = 10
+  paste("plot_complex_pr_type_", workflow, ".svg", sep = ""),
+  height = 8,
+  width = 8
 )
-c
+complex_pr_type
 dev.off()
 
 svg(
-  paste("plot_complex_prtype_", workflow, ".svg", sep = ""),
-  height = 10,
-  width = 10
+  paste("plot_complex_pr_type_size", workflow, ".svg", sep = ""),
+  height = 8,
+  width = 8
 )
-d
+complex_pr_type_size
 dev.off()

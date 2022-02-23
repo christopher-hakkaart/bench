@@ -1,4 +1,4 @@
-process PLOT_SV_COMPLEX {
+process PLOT_SV {
     tag "$meta.id"
     label 'process_medium'
 
@@ -11,14 +11,14 @@ process PLOT_SV_COMPLEX {
     tuple val(meta), path(jl)
 
     output:
-    path "*.svg"             , emit: truvari_complex_plots
-    path "*.csv"             , emit: truvari_complex_table
+    path "*.svg"             , emit: truvari_plots
+    path "*.csv"             , emit: truvari_table
     path "*versions.yml"     , emit: versions
     
 
     script:
     """
-    sv_complex_report.r ${jl} ${meta.id}
+    sv_report.r ${jl} ${meta.id}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
