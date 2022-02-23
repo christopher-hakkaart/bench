@@ -23,20 +23,27 @@ workflow BENCHMARK_SV {
         ch_truvari_giab_jl = TRUVARI_BENCHMARK.out.truvari_giab_jl
         truvari_version = TRUVARI_BENCHMARK.out.versions
 
-    //ch_truvari_table = Channel.empty()
-    //ch_truvari_svg = Channel.empty()
-    //sv_plot_version = Channel.empty()
+    ch_truvari_table = Channel.empty()
+    ch_truvari_svg = Channel.empty()
+    plot_version = Channel.empty()
 
     if(!params.skip_sv_report) {
         JL_2_CSV ( ch_truvari_giab_jl )
-
-        PLOT_SV ( JL_2_CSV.out.csv )
-
+            ch_truvari_giab_csv = JL_2_CSV.out.csv
+        
+        PLOT_SV ( ch_truvari_giab_csv )
+            ch_truvari_table = PLOT_SV.out.truvari_table
+            ch_truvari_svg = PLOT_SV.out.truvari_plots
+            sv_plot_version = PLOT_SV.out.versions
     }
 
     emit:
+        ch_truvari_summary
         ch_truvari_vcf
         ch_truvari_log
-        ch_truvari_summary
         truvari_version
+        ch_truvari_table
+        ch_truvari_svg
+        sv_plot_version
+        
 }

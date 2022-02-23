@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 ################################################
-## COMPLEX REPORT ANALYSIS                    ##
+## SHORT VARIANT ANALYSIS REPORT              ##
 ################################################
 
 # Analysis script for making csv tables and plots:
@@ -16,6 +16,8 @@
 # plot_complex_pr_type_{workflowname}.svg
 # plot_complex_pr_type_size_{workflowname}.svg
 #
+
+options(warn=-1)
 
 ################################################
 ## LOAD LIBRARIES                             ##
@@ -38,6 +40,31 @@ if (length(args) < 2) {
 
 giab     <- read.csv(args[1])
 workflow <- args[2]
+
+################################################
+## TIDY SUMMARY COLUMN NAMES                  ##
+################################################
+
+colnames(giab) <- c(
+  "Type",
+  "Filter",
+  "Truth total",
+  "True positives",
+  "False negatives",
+  "Query total",
+  "False positives",
+  "Unknown query",
+  "False positives (GT)",
+  "False positives (AL)",
+  "Recall",
+  "Precision",
+  "Fraction NA",
+  "F1 score",
+  "Truth total (TI:TV)",
+  "Query total (TI:TV)",
+  "Truth total (HET:HOM)",
+  "Query total (HET:HOM)"
+)
 
 ################################################
 ## FIND REASONABLE PLOTTING MARGINS           ##
@@ -157,7 +184,8 @@ backgroundF1 <- ggplot() +
       x = x + (plotaxis[3]/3),
       y = y,
       label = paste('f=', as.numeric(group)),
-      fontface = 'italic'
+      fontface = 'italic',
+      na.rm=TRUE
     ),
     color = "grey",
     size = 4
@@ -168,148 +196,14 @@ backgroundF1 <- ggplot() +
     plot.title = element_text(size = 30, hjust = 0.5)
   )
 
-################################################
-## TIDY SIZE BINS FOR NICER OUTPUTS           ##
-################################################
-
-# Order factor size bins
-giab$szbin <-
-  factor(
-    giab$szbin,
-    levels = c(
-      '<50',
-      '[50,100)',
-      '[100,200)',
-      '[200,300)',
-      '[300,400)',
-      '[400,600)',
-      '[600,800)',
-      '[800,1k)',
-      '[1k,2.5k)',
-      '[2.5k,5k)',
-      '>=5k'
-    )
-  )
-giab$szbin <- gsub(")", "", giab$szbin)
-giab$szbin <- gsub(",", "-", giab$szbin)
-giab$szbin <- gsub("\\[", "", giab$szbin)
-giab$szbin <-
-  factor(
-    giab$szbin,
-    levels = c(
-      '<50',
-      '50-100',
-      '100-200',
-      '200-300',
-      '300-400',
-      '400-600',
-      '600-800',
-      '800-1k',
-      '1k-2.5k',
-      '2.5k-5k',
-      '>=5k'
-    )
-  )
-
-################################################
-## RESTRICT TO DEL AND INS                    ##
-################################################
-
-giab <- giab[giab$svtype %in% c("DEL", "INS"), ]
-
-################################################
-## MAKE DATA FRAMES                           ##
-################################################
-
-giab_complex_all <- giab %>% group_by(state) %>%
-  summarize(count = n()) %>%
-  spread(key = state, value = count) %>%
-  summarize(
-    workflow = workflow,
-    precision = tp / (tp + fp),
-    recall = tp / (tp + fn),
-    F1 = 2 * ((precision * recall) / (precision + recall))
-  ) %>%
-  replace_na(list(
-    precision = 0,
-    recall = 0,
-    F1 = 0
-  ))
-colnames(giab_complex_all) <- c("Workflow", "Precision", "Recall", "F1")
-
-giab_complex_type <- giab %>% group_by(state, svtype) %>%
-  summarize(count = n()) %>%
-  spread(key = state, value = count) %>%
-  summarize(
-    svtype = svtype,
-    workflow = workflow,
-    precision = tp / (tp + fp),
-    recall = tp / (tp + fn),
-    F1 = 2 * ((precision * recall) / (precision + recall))
-  ) %>%
-  replace_na(list(
-    precision = 0,
-    recall = 0,
-    F1 = 0
-  ))
-colnames(giab_complex_type) <-
-  c("Type", "Workflow", "Precision", "Recall", "F1")
-
-giab_complex_size <- giab %>% group_by(state, svtype, szbin) %>%
-  summarize(count = n()) %>%
-  spread(key = state, value = count) %>%
-  summarize(
-    workflow = workflow,
-    szbin = szbin,
-    precision = tp / (tp + fp),
-    recall = tp / (tp + fn),
-    F1 = 2 * ((precision * recall) / (precision + recall))
-  ) %>%
-  replace_na(list(
-    precision = 0,
-    recall = 0,
-    F1 = 0
-  ))
-colnames(giab_complex_size) <-
-  c("Type", "Workflow", "Size", "Precision", "Recall", "F1")
-
-################################################
-## WRITE CSVS                                 ##
-################################################
-
-write.csv(giab_complex_all,
-          paste("table_complex_all_", workflow, ".csv", sep = ""))
-write.csv(giab_complex_type,
-          paste("table_complex_type_", workflow, ".csv", sep = ""))
-write.csv(giab_complex_size,
-          paste("table_complex_size_", workflow, ".csv", sep = ""))
 
 ################################################
 ## MAKE PLOTS                                 ##
 ################################################
 
-complex_state_type <-
-  ggplot(subset(giab, state %in% c("tp", "fp", "fn")), aes(fill = svtype, x = state)) +
-  geom_bar(position = 'dodge', color = "black") +
-  scale_x_discrete(drop=FALSE) +
-  scale_fill_discrete(drop=FALSE) +
-  ylab("Count") +
-  xlab("State") +
-  theme_classic(base_size = 12) # Variant counts
-
-complex_state_type_size <-
-  ggplot(subset(giab, state %in% c("tp", "fp", "fn")), aes(fill = svtype, x = szbin)) +
-  geom_bar(position = 'dodge', color = "black") +
-  scale_x_discrete(drop=FALSE) + 
-  scale_fill_discrete(drop=FALSE) +
-  ylab("Count") +
-  xlab("Size bin") +
-  facet_grid(state ~ .) +
-  theme_classic(base_size = 12) # Variant counts by type
-
-complex_pr_type <-
+short_pr_type <-
   backgroundF1 + geom_point(
-    data = giab_complex_type,
+    data = giab,
     aes(
       x = as.numeric(Recall),
       y = as.numeric(Precision),
@@ -324,54 +218,14 @@ complex_pr_type <-
   theme_classic(base_size = 12) +
   guides(colour = guide_legend(ncol = 1))
 
-complex_pr_type_size <-
-  backgroundF1 + geom_point(
-    data = giab_complex_size,
-    aes(
-      x = as.numeric(Recall),
-      y = as.numeric(Precision),
-      col = Size,
-      shape = Type
-    ),
-    alpha = 30,
-    cex = 3
-  ) +
-  ylab("Precision") +
-  xlab("Recall") +
-  guides(colour = guide_legend(ncol = 1)) +
-  theme_classic(base_size = 12) # Variant counts by type
-
 ################################################
 ## SAVE PLOTS                                 ##
 ################################################
-svg(
-  paste("plot_complex_state_type_", workflow, ".svg", sep = ""),
-  height = 8,
-  width = 8
-)
-complex_state_type
-dev.off()
 
 svg(
-  paste("plot_complex_state_type_size_", workflow, ".svg", sep = ""),
+  paste("plot_short_pr_type_", workflow, ".svg", sep = ""),
   height = 8,
   width = 8
 )
-complex_state_type_size
-dev.off()
-
-svg(
-  paste("plot_complex_pr_type_", workflow, ".svg", sep = ""),
-  height = 8,
-  width = 8
-)
-complex_pr_type
-dev.off()
-
-svg(
-  paste("plot_complex_pr_type_size", workflow, ".svg", sep = ""),
-  height = 8,
-  width = 8
-)
-complex_pr_type_size
+short_pr_type
 dev.off()
