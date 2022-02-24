@@ -5,6 +5,8 @@
 params.options = [:]
 
 include { HAPPY_BENCHMARK } from '../../modules/local/happy_benchmark' addParams( options: params.options )
+include { PLOT_SHORT      } from '../../modules/local/plot_short'      addParams( options: params.options )
+
 
 workflow BENCHMARK_SHORT {
     take:
@@ -17,6 +19,11 @@ workflow BENCHMARK_SHORT {
         ch_happy_runinfo = HAPPY_BENCHMARK.out.happy_runinfo
         ch_happy_summary = HAPPY_BENCHMARK.out.happy_summary
         happy_version = HAPPY_BENCHMARK.out.versions
+
+        if(!params.skip_short_report) {
+        PLOT_SHORT ( ch_happy_summary )
+            ch_happy_svg = PLOT_SHORT.out.truvari_plots
+    }
 
     emit:
     ch_happy_metrics

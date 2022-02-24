@@ -1,20 +1,13 @@
 #!/usr/bin/env Rscript
 
 ################################################
-## SHORT VARIANT ANALYSIS REPORT              ##
+## SHORT VARIANT ANALYSIS                     ##
 ################################################
 
 # Analysis script for making csv tables and plots:
 #
-#
-# table_complex_all_{workflowname}.csv
-# table_complex_sizes_{workflowname}.csv
-# table_complex_type_{workflowname}.csv
-#
-# plot_complex_state_type_{workflowname}.svg
-# plot_complex_state_type_size_{workflowname}.svg
-# plot_complex_pr_type_{workflowname}.svg
-# plot_complex_pr_type_size_{workflowname}.svg
+# plot_short_pr_type_{workflowname}.svg
+# plot_short_state_type_{workflowname}.svg
 #
 
 options(warn=-1)
@@ -73,26 +66,46 @@ colnames(giab) <- c(
 minPR <- min(c(giab$Recall,giab$Precision))
 
 if (minPR > 0.95) {
-  plotscore <- c(0.95, 0.99, 0.01)
-  plotaxis <- c(0.95, 1, 0.01, 0.005)
+  f1_low <- 0.95
+  f1_high <- 0.99
+  f1_breaks <- 0.01
+  ax_low <- 0.95
+  ax_high <- 1
+  ax_breaks <- 0.01
+  ax_mar <- 0.005
 } else if (minPR > 0.9) {
-  plotscore <- c(0.90, 0.99, 0.01)
-  plotaxis <- c(0.90, 1, 0.02, 0.01)
+  f1_low <- 0.9
+  f1_high <- 0.99
+  f1_breaks <- 0.01
+  ax_low <- 0.9
+  ax_high <- 1
+  ax_breaks <- 0.02
+  ax_mar <- 0.01
 } else if (minPR > 0.5) {
-  plotscore <- c(0.6, 0.95, 0.05)
-  plotaxis <- c(0.6, 1, 0.05, 0.04)
+  f1_low <- 0.6
+  f1_high <- 0.95
+  f1_breaks <- 0.05
+  ax_low <- 0.6
+  ax_high <- 1
+  ax_breaks <- 0.05
+  ax_mar <- 0.04
 } else {
-  plotscore <- c(0.1, 0.9, 0.1)
-  plotaxis <- c(0.1, 1, 0.2, 0.05)
+  f1_low <- 0.1
+  f1_high <- 0.9
+  f1_breaks <- 0.1
+  ax_low <- 0.1
+  ax_high <- 1
+  ax_breaks <- 0.2
+  ax_mar <- 0.05
 }
 
 ################################################
 ## CREATE BACKGROUND PLOTTING FUNCTION        ##
 ################################################
 
-plotF1 <- function(min = plotscore[1],
-                   max = plotscore[2],
-                   diff = plotscore[3]) {
+plotF1 <- function(min = f1_low,
+                   max = f1_high,
+                   diff = f1_breaks) {
   p1 <- seq(.001, .999, .001)
   f1 <- seq(min, max, diff)
   
@@ -164,14 +177,14 @@ backgroundF1 <- ggplot() +
     color = 'lightgray'
   ) +
   scale_x_continuous(
-    limits = c(plotaxis[1]-plotaxis[4], plotaxis[2]+plotaxis[4]),
+    limits = c(ax_low-ax_mar, ax_high+ax_mar),
     expand = c(0, 0),
-    breaks = seq(plotaxis[1], plotaxis[2], plotaxis[3])
+    breaks = seq(ax_low, ax_high, ax_breaks)
   ) +
   scale_y_continuous(
     expand = c(0, 0),
-    breaks = seq(plotaxis[1], plotaxis[2], plotaxis[3]),
-    limits = c(plotaxis[1]-plotaxis[4], plotaxis[2]+(plotaxis[4]/2), plotaxis[3])
+    breaks = seq(ax_low, ax_high, ax_breaks),
+    limits = c(ax_low-ax_mar, ax_high+(ax_mar/2),ax_breaks)
   ) +
   theme_bw() +
   xlab('Recall') +
@@ -181,7 +194,7 @@ backgroundF1 <- ggplot() +
   geom_text(
     data = annoF1,
     aes(
-      x = x + (plotaxis[3]/3),
+      x = x + (ax_mar/3),
       y = y,
       label = paste('f=', as.numeric(group)),
       fontface = 'italic',
@@ -196,11 +209,24 @@ backgroundF1 <- ggplot() +
     plot.title = element_text(size = 30, hjust = 0.5)
   )
 
+################################################
+## REFORMAT TABLE                             ##
+################################################
+
+short <-pivot_longer(giab, cols = c(`False negatives`, `False positives`, `True positives`), names_to = "State", values_to = "count")
 
 ################################################
 ## MAKE PLOTS                                 ##
 ################################################
 
+short_state_type <-
+ggplot(data=short, aes(x=State, y=count, fill=Type)) +
+  geom_bar(stat="identity", color="black", position='dodge') +
+    ylab("Count") +
+    xlab("State") +
+    theme_classic(base_size = 12) +
+    facet_grid(rows = vars(Filter))
+  
 short_pr_type <-
   backgroundF1 + geom_point(
     data = giab,
@@ -208,7 +234,7 @@ short_pr_type <-
       x = as.numeric(Recall),
       y = as.numeric(Precision),
       col = Type,
-      shape = Type
+      shape = Filter
     ),
     alpha = 30,
     cex = 3
@@ -228,4 +254,13 @@ svg(
   width = 8
 )
 short_pr_type
+dev.off()
+
+
+svg(
+  paste("plot_short_state_type_", workflow, ".svg", sep = ""),
+  height = 8,
+  width = 8
+)
+short_state_type
 dev.off()

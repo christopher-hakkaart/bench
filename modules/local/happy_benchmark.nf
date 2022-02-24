@@ -11,10 +11,10 @@ process HAPPY_BENCHMARK {
     tuple val(meta), path(bench), path(bench_gz), path(truth), path(truth_gz), path(fasta), path(fai), path(bed), path(bed_gz), path(tbi)
 
     output:
-    path "*metrics.json.gz"  , emit: happy_metrics
-    path "*.roc.*"           , emit: happy_rocs
-    path "*runinfo.json"     , emit: happy_runinfo
-    path "*summary.csv"      , emit: happy_summary
+    tuple val(meta), path("*metrics.json.gz") , emit: happy_metrics
+    tuple val(meta), path("*.roc.*")          , emit: happy_rocs
+    tuple val(meta), path("*runinfo.json")    , emit: happy_runinfo
+    tuple val(meta), path("*summary.csv")     , emit: happy_summary
     path "*versions.yml"     , emit: versions
 
     script:

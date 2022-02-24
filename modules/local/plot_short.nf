@@ -8,11 +8,10 @@ process PLOT_SHORT {
     //    'https://depot.galaxyproject.org/singularity/mulled-v2-02abbf3250c7d008f9d739d7e72ff16a64ae95fc:a440898f307c775f85c44c2812cb28afd74f011d-0' }" Something failed, I can't remember what...
 
     input:
-    tuple val(meta), path(summry)
+    tuple val(meta), path(summary)
 
     output:
     path "*.svg"             , emit: truvari_plots
-    path "*.csv"             , emit: truvari_table
     path "*versions.yml"     , emit: versions
     
 

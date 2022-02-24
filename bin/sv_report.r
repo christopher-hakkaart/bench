@@ -1,20 +1,20 @@
 #!/usr/bin/env Rscript
 
 ################################################
-## COMPLEX REPORT ANALYSIS                    ##
+## SV REPORT                                  ##
 ################################################
 
 # Analysis script for making csv tables and plots:
 #
 #
-# table_complex_all_{workflowname}.csv
-# table_complex_sizes_{workflowname}.csv
-# table_complex_type_{workflowname}.csv
+# table_sv_{workflowname}.csv
+# table_sv_sizes_{workflowname}.csv
+# table_sv_type_{workflowname}.csv
 #
-# plot_complex_state_type_{workflowname}.svg
-# plot_complex_state_type_size_{workflowname}.svg
-# plot_complex_pr_type_{workflowname}.svg
-# plot_complex_pr_type_size_{workflowname}.svg
+# plot_sv_state_type_{workflowname}.svg
+# plot_sv_state_type_size_{workflowname}.svg
+# plot_sv_pr_type_{workflowname}.svg
+# plot_sv_pr_type_size_{workflowname}.svg
 #
 
 ################################################
@@ -221,7 +221,7 @@ giab <- giab[giab$svtype %in% c("DEL", "INS"), ]
 ## MAKE DATA FRAMES                           ##
 ################################################
 
-giab_complex_all <- giab %>% group_by(state) %>%
+giab_sv <- giab %>% group_by(state) %>%
   summarize(count = n()) %>%
   spread(key = state, value = count) %>%
   summarize(
@@ -235,9 +235,9 @@ giab_complex_all <- giab %>% group_by(state) %>%
     recall = 0,
     F1 = 0
   ))
-colnames(giab_complex_all) <- c("Workflow", "Precision", "Recall", "F1")
+colnames(giab_sv) <- c("Workflow", "Precision", "Recall", "F1")
 
-giab_complex_type <- giab %>% group_by(state, svtype) %>%
+giab_sv_type <- giab %>% group_by(state, svtype) %>%
   summarize(count = n()) %>%
   spread(key = state, value = count) %>%
   summarize(
@@ -252,10 +252,10 @@ giab_complex_type <- giab %>% group_by(state, svtype) %>%
     recall = 0,
     F1 = 0
   ))
-colnames(giab_complex_type) <-
+colnames(giab_sv_type) <-
   c("Type", "Workflow", "Precision", "Recall", "F1")
 
-giab_complex_size <- giab %>% group_by(state, svtype, szbin) %>%
+giab_sv_size <- giab %>% group_by(state, svtype, szbin) %>%
   summarize(count = n()) %>%
   spread(key = state, value = count) %>%
   summarize(
@@ -270,25 +270,28 @@ giab_complex_size <- giab %>% group_by(state, svtype, szbin) %>%
     recall = 0,
     F1 = 0
   ))
-colnames(giab_complex_size) <-
+colnames(giab_sv_size) <-
   c("Type", "Workflow", "Size", "Precision", "Recall", "F1")
 
 ################################################
 ## WRITE CSVS                                 ##
 ################################################
 
-write.csv(giab_complex_all,
-          paste("table_complex_all_", workflow, ".csv", sep = ""))
-write.csv(giab_complex_type,
-          paste("table_complex_type_", workflow, ".csv", sep = ""))
-write.csv(giab_complex_size,
-          paste("table_complex_size_", workflow, ".csv", sep = ""))
+write.csv(giab_sv,
+          paste("table_sv_", workflow, ".csv", sep = ""),
+          row.names=FALSE)
+write.csv(giab_sv_type,
+          paste("table_sv_type_", workflow, ".csv", sep = ""),
+          row.names=FALSE)
+write.csv(giab_sv_size,
+          paste("table_sv_size_", workflow, ".csv", sep = ""),
+          row.names=FALSE)
 
 ################################################
 ## MAKE PLOTS                                 ##
 ################################################
 
-complex_state_type <-
+sv_state_type <-
   ggplot(subset(giab, state %in% c("tp", "fp", "fn")), aes(fill = svtype, x = state)) +
   geom_bar(position = 'dodge', color = "black") +
   scale_x_discrete(drop=FALSE) +
@@ -297,7 +300,7 @@ complex_state_type <-
   xlab("State") +
   theme_classic(base_size = 12) # Variant counts
 
-complex_state_type_size <-
+sv_state_type_size <-
   ggplot(subset(giab, state %in% c("tp", "fp", "fn")), aes(fill = svtype, x = szbin)) +
   geom_bar(position = 'dodge', color = "black") +
   scale_x_discrete(drop=FALSE) + 
@@ -307,9 +310,9 @@ complex_state_type_size <-
   facet_grid(state ~ .) +
   theme_classic(base_size = 12) # Variant counts by type
 
-complex_pr_type <-
+sv_pr_type <-
   backgroundF1 + geom_point(
-    data = giab_complex_type,
+    data = giab_sv_type,
     aes(
       x = as.numeric(Recall),
       y = as.numeric(Precision),
@@ -324,9 +327,9 @@ complex_pr_type <-
   theme_classic(base_size = 12) +
   guides(colour = guide_legend(ncol = 1))
 
-complex_pr_type_size <-
+sv_pr_type_size <-
   backgroundF1 + geom_point(
-    data = giab_complex_size,
+    data = giab_sv_size,
     aes(
       x = as.numeric(Recall),
       y = as.numeric(Precision),
@@ -345,33 +348,33 @@ complex_pr_type_size <-
 ## SAVE PLOTS                                 ##
 ################################################
 svg(
-  paste("plot_complex_state_type_", workflow, ".svg", sep = ""),
+  paste("plot_sv_state_type_", workflow, ".svg", sep = ""),
   height = 8,
   width = 8
 )
-complex_state_type
+sv_state_type
 dev.off()
 
 svg(
-  paste("plot_complex_state_type_size_", workflow, ".svg", sep = ""),
+  paste("plot_sv_state_type_size_", workflow, ".svg", sep = ""),
   height = 8,
   width = 8
 )
-complex_state_type_size
+sv_state_type_size
 dev.off()
 
 svg(
-  paste("plot_complex_pr_type_", workflow, ".svg", sep = ""),
+  paste("plot_sv_pr_type_", workflow, ".svg", sep = ""),
   height = 8,
   width = 8
 )
-complex_pr_type
+sv_pr_type
 dev.off()
 
 svg(
-  paste("plot_complex_pr_type_size", workflow, ".svg", sep = ""),
+  paste("plot_sv_pr_type_size_", workflow, ".svg", sep = ""),
   height = 8,
   width = 8
 )
-complex_pr_type_size
+sv_pr_type_size
 dev.off()
