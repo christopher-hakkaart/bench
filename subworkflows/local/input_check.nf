@@ -21,7 +21,7 @@ workflow INPUT_CHECK {
     ch_sample // channel: [ meta, variant_type, genome, bench_set, truth_set, high_conf ]
 }
 
-// Function to check files exist and resolve genome is not provided
+// Check files exist and resolve genome if it is not provided
 def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
 
     // Check bench set files exist
@@ -44,7 +44,7 @@ def get_sample_info(LinkedHashMap sample, LinkedHashMap genomeMap) {
         }
     }
     
-    // Resolve fasta file if using iGenomes if not provided
+    // Resolve fasta file using iGenomes if .fa file is not provided
     def fasta = false
 
     if (sample.genome) {
