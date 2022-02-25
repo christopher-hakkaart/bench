@@ -66,7 +66,7 @@ The nf-core/bench pipeline comes with documentation about the pipeline [usage](h
 
 ## Credits
 
-nf-core/bench was originally written by Christopher Hakkaart from the [Institute of Medical Genetics and Applied Genomics](https://www.medizin.uni-tuebingen.de/de/das-klinikum/einrichtungen/institute/medizinische-genetik-und-angewandte-genomik), and Nicholas Smith and Christian Mertes from the [Technical University of Munich](https://www.tum.de/en/) for use by the [German Human Genome-Phenome Archive](https://www.ghga.de/).
+nf-core/bench was originally written by Christopher Hakkaart from the [Institute of Medical Genetics and Applied Genomics](https://www.medizin.uni-tuebingen.de/de/das-klinikum/einrichtungen/institute/medizinische-genetik-und-angewandte-genomik), and Nicholas Smith and Christian Mertes from the [Technical University of Munich](https://www.tum.de/en/), and Leon Brandhoff from the [University of Cologne](https://portal.uni-koeln.de/en/sub/uoc-home) for use by the [German Human Genome-Phenome Archive](https://www.ghga.de/).
 
 <!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 
