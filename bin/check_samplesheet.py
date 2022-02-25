@@ -135,8 +135,7 @@ def check_samplesheet(file_in, file_out):
                     print_error("Multiple runs of a sample must be of the same datatype!", "Sample: {}".format(sample))
 
                 for idx, val in enumerate(sample_dict[sample]):
-                    fout.write(",".join(["{}_T{}".format(sample, idx + 1)] + val) + "\n")
-                    # TODO: add check truthset name.
+                    fout.write(",".join(["{}_{}".format(sample, variant_type.lower())] + val) + "\n")
     else:
         print_error("No entries to process!", "Samplesheet: {}".format(file_in))
 

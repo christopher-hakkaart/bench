@@ -18,6 +18,7 @@ workflow PREPARE_REGIONS {
         bed_ch
     )
     bed_gz = TABIX_BGZIP.out.gz
+    bgzip_version = TABIX_BGZIP.out.versions
 
     /*
      * Index compressed bed
@@ -26,6 +27,7 @@ workflow PREPARE_REGIONS {
         bed_gz 
     )
     bed_tbi = TABIX_TABIX.out.tbi
+    tabix_version = TABIX_TABIX.out.versions
 
     bed_ch
     .join(bed_gz, by: [0] )
@@ -34,4 +36,6 @@ workflow PREPARE_REGIONS {
 
     emit:
     ch_bed
+    bgzip_version
+    tabix_version
 }

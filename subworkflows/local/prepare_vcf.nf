@@ -40,6 +40,7 @@ workflow PREPARE_VCF {
         vcf_nochr
     )
     vcf_gz = TABIX_BGZIP.out.gz
+    bgzip_version = TABIX_BGZIP.out.versions
 
     /*
      * TABIX vcf file
@@ -48,6 +49,7 @@ workflow PREPARE_VCF {
         vcf_gz
     )
     vcf_tbi = TABIX_TABIX.out.tbi
+    tabix_version = TABIX_TABIX.out.versions
 
     /*
      * Revert rename using meta
@@ -66,4 +68,6 @@ workflow PREPARE_VCF {
 
     emit:
     ch_vcf
+    bgzip_version
+    tabix_version
 }
