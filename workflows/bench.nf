@@ -48,6 +48,7 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // MODULE: Local to the pipeline
 //
 include { MULTIQC                      } from '../modules/local/multiqc' // Version 1.10.1 fails because of python version
+include { MERGE_RESULTS                } from '../modules/local/merge_results' // Version 1.10.1 fails because of python version
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -170,6 +171,15 @@ workflow BENCH {
         ch_truvari_svg       = BENCHMARK_SV.out.ch_truvari_svg
         ch_software_versions = ch_software_versions.mix(BENCHMARK_SV.out.truvari_version.first().ifEmpty(null))
         ch_software_versions = ch_software_versions.mix(BENCHMARK_SV.out.sv_plot_version.first().ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: Merge results
+    //
+    ch_truvari_table.view()
+
+    MERGE_RESULTS (
+        ch_truvari_table 
+    )
 
     /*
     * MODULE: Parse software version numbers

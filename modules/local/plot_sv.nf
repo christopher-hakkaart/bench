@@ -11,9 +11,9 @@ process PLOT_SV {
     tuple val(meta), path(jl)
 
     output:
-    path "*.svg"             , emit: truvari_plots
-    path "*.csv"             , emit: truvari_table
-    path "*versions.yml"     , emit: versions
+    tuple val(meta), path ("*.svg")             , emit: truvari_plots
+    tuple val(meta), path ("*.csv")             , emit: truvari_table
+    path "*versions.yml"                        , emit: versions
     
 
     script:
