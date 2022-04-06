@@ -28,15 +28,17 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
 
-1. Prepare files for benchmarking.
-    * Prepare query `.vcf.gz` file.
-    * Prepare truth `.vcf.gz` file. 
-    * Prepare genome `.fa` file.
-    * Prepare high confidence regions `.bed` file.
-2. Benchmark short variant (SNPs and INDELs) using [`hap.py`](https://github.com/Illumina/hap.py).
-3. Benchmark structural variant (DELs and INSs) using [`truvari`](https://github.com/ACEnglish/truvari).
+1. Prepare files for benchmarking
+    * Prepare query `.vcf.gz` file
+    * Prepare truth `.vcf.gz` file 
+    * Prepare genome `.fa` file
+    * Prepare high confidence regions `.bed` file
+2. Benchmark short variant (SNPs and INDELs) using [`hap.py`](https://github.com/Illumina/hap.py)
+3. Benchmark structural variant (DELs and INSs) using [`truvari`](https://github.com/ACEnglish/truvari)
 
 ## Quick Start
+
+_Please note that some tools have not yet been containerised and the workflow will only work if you are using conda_
 
 1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=21.04.0`)
 
@@ -66,7 +68,7 @@ The nf-core/bench pipeline comes with documentation about the pipeline [usage](h
 
 ## Credits
 
-nf-core/bench was originally written by Christopher Hakkaart from the [Institute of Medical Genetics and Applied Genomics](https://www.medizin.uni-tuebingen.de/de/das-klinikum/einrichtungen/institute/medizinische-genetik-und-angewandte-genomik), and Nicholas Smith and Christian Mertes from the [Technical University of Munich](https://www.tum.de/en/), and Leon Brandhoff from the [University of Cologne](https://portal.uni-koeln.de/en/sub/uoc-home) for use by the [German Human Genome-Phenome Archive](https://www.ghga.de/).
+nf-core/bench was originally written by Christopher Hakkaart from the [Institute of Medical Genetics and Applied Genomics](https://www.medizin.uni-tuebingen.de/de/das-klinikum/einrichtungen/institute/medizinische-genetik-und-angewandte-genomik), Nicholas Smith and Christian Mertes from the [Technical University of Munich](https://www.tum.de/en/), and Leon Brandhoff from the [University of Cologne](https://portal.uni-koeln.de/en/sub/uoc-home) for use by the [German Human Genome-Phenome Archive](https://www.ghga.de/).
 
 <!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 
