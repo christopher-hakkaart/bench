@@ -1,6 +1,6 @@
 // Import generic module functions
 process MERGE_RESULTS {
-    tag "$meta.id"
+    tag "mergetest"
     label 'process_medium'
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3" : null)
@@ -11,13 +11,14 @@ process MERGE_RESULTS {
     }
 
     input:
-    tuple val(meta), path(table)
+    path(ch_test)
 
     output:
-    path("*csv")        , emit: merged_csv
+    path("mergedtables.csv")        , emit: merged_csv
 
-    script: // 
+    script: //
+
     """
-    cat $table >> merged_summary.csv
+    awk 'FNR>1' ${ch_test.join(' ')} >> mergedtables.csv
     """
 }

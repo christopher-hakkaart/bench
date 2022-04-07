@@ -32,6 +32,7 @@ workflow PREPARE_VCF {
         vcf_renamed
     )
     vcf_nochr = REMOVE_CHR.out.vcf
+    bcftools_version = REMOVE_CHR.out.versions
 
     /*
      * BGZIP vcf file
@@ -69,5 +70,6 @@ workflow PREPARE_VCF {
     emit:
     ch_vcf
     bgzip_version
+    bcftools_version
     tabix_version
 }
