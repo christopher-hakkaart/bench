@@ -18,13 +18,16 @@ process HAPPY_BENCHMARK {
     path "*versions.yml"     , emit: versions
 
     script:
+    def args = task.ext.args ?: ''
+    def target_regions = params.skip_highconf ? "" : "-f $bed_gz"
     """
-    hap.py \\
-        $truth \\
-        $bench \\
-        -r $fasta \\
-        -f $bed_gz \\
-        -o ${meta.id}
+    hap.py \
+        $truth \
+        $bench \
+        -r $fasta \
+        -o ${meta.id} \
+        $target_regions \
+        $args
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
