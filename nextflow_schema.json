@@ -45,44 +45,44 @@
             }
         },
         "truvari_options": {
-            "title": "Truvari options",
+            "title": "Truvari bench options",
             "type": "object",
             "fa_icon": "fas fa-dna",
-            "description": "Files related to benchmarking structural variants using truvari.",
+            "description": "Given a benchmark and callset, will calculate the recall/precision/f-measure.",
             "properties": {
                 "refdist": {
                     "type": "integer",
-                    "description": "Distance to reference.",
+                    "description": "Reference distance",
                     "default": 500,
                     "fa_icon": "fas fa-book",
-                    "help_text": "Maximum distance comparison calls must be within from base call's start/end."
+                    "help_text": "Max reference location distance."
                 },
                 "pctsim": {
                     "type": "integer",
-                    "description": "Distance ratio.",
+                    "description": "Percentage similarity",
                     "default": 0.7,
                     "fa_icon": "fas fa-book",
-                    "help_text": "Edit distance ratio between the REF/ALT haplotype sequences of base and comparison call."
+                    "help_text": "Minimum percent allele sequence similarity. Set to 0 to ignore."
                 },
                 "pctsize": {
                     "type": "integer",
-                    "description": "Min/man size ratio",
+                    "description": "Percentage size",
                     "default": 0.7,
                     "fa_icon": "fas fa-book",
                     "help_text": "Ratio of min(base_size, comp_size)/max(base_size, comp_size)."
                 },
                 "pctovl": {
                     "type": "integer",
-                    "description": "Call ratio.",
+                    "description": "Percentage overlap",
                     "default": 0.0,
                     "fa_icon": "fas fa-book",
-                    "help_text": "Ratio of two calls' (overlapping bases)/(longest span)."
+                    "help_text": "Minimum percentage of reciprocal overlap for DEL events."
                 },
                 "typeignore": {
                     "type": "boolean",
-                    "description": "Types don't need to match to compare calls.",
+                    "description": "Ignore SV type",
                     "fa_icon": "fas fa-book",
-                    "help_text": "Types don't need to match to compare calls (FALSE)."
+                    "help_text": "Variant types don't need to match to compare."
                 },
                 "giabreport": {
                     "type": "boolean",
@@ -92,71 +92,71 @@
                 },
                 "prog": {
                     "type": "boolean",
-                    "description": "Turn on progress monitoring.",
+                    "description": "Progress monitoring.",
                     "fa_icon": "fas fa-book",
                     "help_text": "Turn on progress monitoring."
                 },
                 "buffer": {
                     "type": "integer",
-                    "description": "Percent of the reference span to buffer the haplotype sequence created",
+                    "description": "Buffer",
                     "default": 0,
                     "fa_icon": "fas fa-book",
-                    "help_text": "Percent of the reference span to buffer the haplotype sequence created"
+                    "help_text": "Percent of the reference span to buffer the haplotype sequence created."
                 },
                 "use_lev": {
                     "type": "boolean",
-                    "description": "Use the Levenshtein distance ratio instead of edlib editDistance ratio (False).",
+                    "description": "Use Levenshtein distance ratio",
                     "fa_icon": "fas fa-book",
-                    "help_text": "Use the Levenshtein distance ratio instead of edlib editDistance ratio (False)."
+                    "help_text": "Use the Levenshtein distance ratio instead of edlib editDistance ratio."
                 },
                 "gtcomp": {
                     "type": "boolean",
-                    "description": "Compare GenoTypes of matching calls.",
+                    "description": "Compare GenoTypes",
                     "fa_icon": "fas fa-book",
-                    "help_text": "Compare GenoTypes of matching calls."
+                    "help_text": "Compare genotypes of matching calls."
                 },
                 "sizemin": {
                     "type": "integer",
-                    "description": "Minimum variant size to consider for comparison (50).",
+                    "description": "Minimum size",
                     "default": 50,
                     "fa_icon": "fas fa-book",
-                    "help_text": "Minimum variant size to consider for comparison (50)."
+                    "help_text": "Minimum variant size to consider for comparison."
                 },
                 "sizefilt": {
                     "type": "integer",
-                    "description": "Minimum variant size to load into IntervalTree (30).",
+                    "description": "Minimum variant size to load",
                     "default": 30,
                     "fa_icon": "fas fa-book",
-                    "help_text": "Minimum variant size to load into IntervalTree (30)"
+                    "help_text": "Minimum variant size to load into IntervalTree."
                 },
                 "sizemax": {
                     "type": "integer",
-                    "description": "Maximum variant size to consider for comparison (50000).",
+                    "description": "Maximum variant size ",
                     "default": 50000,
                     "fa_icon": "fas fa-book",
-                    "help_text": "Maximum variant size to consider for comparison (50000)"
+                    "help_text": "Maximum variant size to consider for comparison."
                 },
                 "passonly": {
                     "type": "boolean",
-                    "description": "Only consider calls with FILTER == PASS.",
+                    "description": "Filter PASS variants calls",
                     "fa_icon": "fas fa-book",
-                    "help_text": "Only consider calls with FILTER == PASS"
+                    "help_text": "Only consider calls with FILTER == PASS."
                 },
                 "no_ref": {
                     "type": "string",
-                    "description": "Don't include 0/0 or ./. GT calls from all (a), base (b), or comp (c) vcfs (False)",
+                    "description": "Exclude reference calls",
                     "fa_icon": "fas fa-book",
-                    "help_text": "Don't include 0/0 or ./. GT calls from all (a), base (b), or comp (c) vcfs (False)"
+                    "help_text": "Don't include 0/0 or ./. GT calls from all (a), base (b), or comp (c) vcfs."
                 },
                 "multimatch": {
                     "type": "boolean",
-                    "description": "Name of iGenomes reference.",
+                    "description": "Allow variant multimatch",
                     "fa_icon": "fas fa-book",
-                    "help_text": ""
+                    "help_text": "Allow base calls to match multiple comparison calls, and vice versa. Output vcfs will have redundant entries."
                 },
                 "includebed": {
                     "type": "object",
-                    "description": "Bed file of regions in the genome to include only calls overlapping.",
+                    "description": "Target bed regions",
                     "fa_icon": "fas fa-book",
                     "help_text": "Bed file of regions in the genome to include only calls overlapping"
                 }
@@ -208,21 +208,21 @@
             "properties": {
                 "skip_highconf": {
                     "type": "boolean",
-                    "description": "Do not restrict analysis to high confidence regions.",
+                    "description": "Defines if analysis should be restricted bed regions.",
                     "fa_icon": "fas fa-book",
-                    "help_text": "Do not restrict analysis to high confidence regions."
+                    "help_text": "Defines if analysis should be restricted bed regions."
                 },
                 "skip_short_report": {
                     "type": "boolean",
-                    "description": "Skip extra report generation using hap.py results.",
+                    "description": "Skip custom report generation using hap.py results.",
                     "fa_icon": "fas fa-book",
-                    "help_text": "Skip extra report generation using hap.py results."
+                    "help_text": "Skip custom report generation using hap.py results."
                 },
                 "skip_sv_report": {
                     "type": "boolean",
-                    "description": "Skip extra report generation using truvari results.",
+                    "description": "Skip custom report generation using truvari results.",
                     "fa_icon": "fas fa-book",
-                    "help_text": "Skip extra report generation using truvari results."
+                    "help_text": "Skip custom report generation using truvari results."
                 }
             }
         },
