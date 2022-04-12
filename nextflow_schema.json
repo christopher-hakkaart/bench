@@ -97,9 +97,9 @@
                     "help_text": "Turn on progress monitoring."
                 },
                 "buffer": {
-                    "type": "integer",
+                    "type": "number",
                     "description": "Buffer",
-                    "default": 0,
+                    "default": 0.1,
                     "fa_icon": "fas fa-book",
                     "help_text": "Percent of the reference span to buffer the haplotype sequence created."
                 },
