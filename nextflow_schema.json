@@ -58,21 +58,21 @@
                     "help_text": "Max reference location distance."
                 },
                 "pctsim": {
-                    "type": "integer",
+                    "type": "number",
                     "description": "Percentage similarity",
                     "default": 0.7,
                     "fa_icon": "fas fa-book",
                     "help_text": "Minimum percent allele sequence similarity. Set to 0 to ignore."
                 },
                 "pctsize": {
-                    "type": "integer",
+                    "type": "number",
                     "description": "Percentage size",
                     "default": 0.7,
                     "fa_icon": "fas fa-book",
                     "help_text": "Ratio of min(base_size, comp_size)/max(base_size, comp_size)."
                 },
                 "pctovl": {
-                    "type": "integer",
+                    "type": "number",
                     "description": "Percentage overlap",
                     "default": 0.0,
                     "fa_icon": "fas fa-book",
@@ -155,7 +155,7 @@
                     "help_text": "Allow base calls to match multiple comparison calls, and vice versa. Output vcfs will have redundant entries."
                 },
                 "includebed": {
-                    "type": "object",
+                    "type": "string",
                     "description": "Target bed regions",
                     "fa_icon": "fas fa-book",
                     "help_text": "Bed file of regions in the genome to include only calls overlapping"
