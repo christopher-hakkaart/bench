@@ -43,21 +43,24 @@ workflow <- args[2]
 ## FIND REASONABLE PLOTTING MARGINS           ##
 ################################################
 
-minPR <- min(c(giab$Recall,giab$Precision))
+#minPR <- min(c(giab$Recall,giab$Precision))
 
-if (minPR > 0.95) {
-  plotscore <- c(0.95, 0.99, 0.01)
-  plotaxis <- c(0.95, 1, 0.01, 0.005)
-} else if (minPR > 0.9) {
-  plotscore <- c(0.90, 0.99, 0.01)
-  plotaxis <- c(0.90, 1, 0.02, 0.01)
-} else if (minPR > 0.5) {
-  plotscore <- c(0.6, 0.95, 0.05)
-  plotaxis <- c(0.6, 1, 0.05, 0.04)
-} else {
-  plotscore <- c(0.1, 0.9, 0.1)
-  plotaxis <- c(0.1, 1, 0.2, 0.05)
-}
+#if (minPR > 0.95) {
+ # plotscore <- c(0.95, 0.99, 0.01)
+ # plotaxis <- c(0.95, 1, 0.01, 0.005)
+#} else if (minPR > 0.9) {
+ # plotscore <- c(0.90, 0.99, 0.01)
+ # plotaxis <- c(0.90, 1, 0.02, 0.01)
+#} else if (minPR > 0.5) {
+ # plotscore <- c(0.6, 0.95, 0.05)
+ # plotaxis <- c(0.6, 1, 0.05, 0.04)
+#} else {
+#  plotscore <- c(0.1, 0.9, 0.1)
+#  plotaxis <- c(0.1, 1, 0.2, 0.05)
+#}
+
+plotscore <- c(0.1, 0.9, 0.1)
+plotaxis <- c(0.1, 1, 0.2, 0.05)
 
 ################################################
 ## CREATE BACKGROUND PLOTTING FUNCTION        ##
@@ -293,7 +296,7 @@ write.csv(giab_sv_size,
 
 sv_state_type <-
   ggplot(subset(giab, state %in% c("tp", "fp", "fn")), aes(fill = svtype, x = state)) +
-  geom_bar(position = 'dodge', color = "black") +
+  geom_bar(position = position_dodge(preserve = "single"), color = "black") +
   scale_x_discrete(drop=FALSE) +
   scale_fill_discrete(drop=FALSE) +
   ylab("Count") +
@@ -302,7 +305,7 @@ sv_state_type <-
 
 sv_state_type_size <-
   ggplot(subset(giab, state %in% c("tp", "fp", "fn")), aes(fill = svtype, x = szbin)) +
-  geom_bar(position = 'dodge', color = "black") +
+  geom_bar(position = position_dodge(preserve = "single"), color = "black") +
   scale_x_discrete(drop=FALSE) + 
   scale_fill_discrete(drop=FALSE) +
   ylab("Count") +
