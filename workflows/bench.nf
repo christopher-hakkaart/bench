@@ -1,21 +1,33 @@
 /*
 ========================================================================================
-    VALIDATE INPUTS
+    LOCAL PARAMETER VALUES
 ========================================================================================
 */
 
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
-// Validate input parameters
-WorkflowBench.initialise(params, log)
+/*
+========================================================================================
+    VALIDATE INPUTS
+========================================================================================
+*/
 
-// TODO nf-core: Add all file path parameters for the pipeline to the list below
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.fasta ]
+checkPathParamList = [ params.input, params.multiqc_config ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-// Check mandatory parameters
+// Check mandatory parameters (missing protocol or profile will exit the run.)
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+
+// Function to check if running offline
+def isOffline() {
+    try {
+        return NXF_OFFLINE as Boolean
+    }
+    catch( Exception e ) {
+        return false
+    }
+}
 
 /*
 ========================================================================================
@@ -23,7 +35,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 ========================================================================================
 */
 
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_config        = file("$baseDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 /*
@@ -32,18 +44,22 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 ========================================================================================
 */
 
-// Don't overwrite global params.modules, create a copy instead and use that within the main script.
-def modules = params.modules.clone()
-
 //
 // MODULE: Local to the pipeline
 //
-include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
+include { MULTIQC                      } from '../modules/local/multiqc' // Version 1.10.1 fails because of python version
+//include { MERGE_RESULTS                } from '../modules/local/merge_results' // Version 1.10.1 fails because of python version
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( options: [:] )
+include { INPUT_CHECK                  } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME               } from '../subworkflows/local/prepare_genome'
+include { PREPARE_REGIONS              } from '../subworkflows/local/prepare_regions'
+include { PREPARE_VCF as PREPARE_TRUTH } from '../subworkflows/local/prepare_vcf'
+include { PREPARE_VCF as PREPARE_BENCH } from '../subworkflows/local/prepare_vcf'
+include { BENCHMARK_SHORT              } from '../subworkflows/local/benchmark_short'
+include { BENCHMARK_SV                 } from '../subworkflows/local/benchmark_sv'
 
 /*
 ========================================================================================
@@ -51,14 +67,10 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( opti
 ========================================================================================
 */
 
-def multiqc_options   = modules['multiqc']
-multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
-
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC  } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
-include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
+include { CUSTOM_DUMPSOFTWAREVERSIONS  } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
 /*
 ========================================================================================
@@ -74,55 +86,135 @@ workflow BENCH {
     ch_software_versions = Channel.empty()
 
     //
-    // SUBWORKFLOW: Read in samplesheet, validate and stage input files
+    // SUBWORKFLOW: Read in samplesheet, validate, and stage input files
     //
     INPUT_CHECK (
         ch_input
     )
-
-    INPUT_CHECK.out.ch_sample.view()
+    INPUT_CHECK.out.ch_sample
+        .multiMap { it ->
+            fasta_ch: [ it[0], it[2] ]
+            bench_ch: [ it[0], it[3] ]
+            truth_ch: [ it[0], it[4] ]
+            bed_ch:   [ it[0], it[5] ]
+            }
+        .set { sample_ch }
 
     //
-    // MODULE: Run FastQC
+    // SUBWORKFLOW: Prepare bench file
     //
-    //FASTQC (
-    //    INPUT_CHECK.out.reads
+    PREPARE_BENCH (
+        sample_ch.bench_ch
+    )
+    ch_bench = PREPARE_BENCH.out.ch_vcf
+    ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.bgzip_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.bcftools_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.tabix_version.first().ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: Prepare truth file
+    //
+    PREPARE_TRUTH (
+        sample_ch.truth_ch
+    )
+    ch_truth = PREPARE_TRUTH.out.ch_vcf
+    ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.bgzip_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.bcftools_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.tabix_version.first().ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: Prepare genome files
+    //
+    PREPARE_GENOME (
+        sample_ch.fasta_ch
+    )
+    ch_fasta = PREPARE_GENOME.out.ch_fasta_fai
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_version.first().ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: Prepare high confidence regions
+    //
+    PREPARE_REGIONS (
+        sample_ch.bed_ch
+    )
+    ch_bed = PREPARE_REGIONS.out.ch_bed
+    ch_software_versions = ch_software_versions.mix(PREPARE_REGIONS.out.bgzip_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PREPARE_REGIONS.out.tabix_version.first().ifEmpty(null))
+
+    //
+    // Prepare sample channles
+    //
+    ch_bench
+        .join ( ch_truth, by: [0] )
+        .join ( ch_fasta, by: [0] )
+        .join ( ch_bed, by: [0] )
+        .branch { it ->
+            short_ch: it[0].variant_type == 'SHORT'
+            sv_ch:    it[0].variant_type == 'STRUCTURAL'
+            }
+        .set{ch_sample_type}
+
+    //
+    // SUBWORKFLOW: Benchamark short variants with hap.py
+    //
+    BENCHMARK_SHORT (
+        ch_sample_type.short_ch
+    )
+    ch_happy_summary     = BENCHMARK_SHORT.out.ch_happy_summary
+    ch_software_versions = ch_software_versions.mix(BENCHMARK_SHORT.out.happy_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(BENCHMARK_SHORT.out.short_plot_version.first().ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: Benchamark sv variants with truvari
+    //
+    BENCHMARK_SV (
+        ch_sample_type.sv_ch
+    )
+    ch_truvari_summary    = BENCHMARK_SV.out.ch_truvari_summary
+    ch_truvari_table_size = BENCHMARK_SV.out.ch_truvari_table_size
+    ch_truvari_table_type = BENCHMARK_SV.out.ch_truvari_table_type
+    ch_truvari_table_sv   = BENCHMARK_SV.out.ch_truvari_table_sv
+    ch_truvari_svg        = BENCHMARK_SV.out.ch_truvari_svg
+    ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.truvari_version.first().ifEmpty(null))
+    ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.sv_plot_version.first().ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: Merge results
+    //
+    //ch_truvari_table_type
+    //    .map{ it -> it[1] }
+    //    .collect()
+    //    .set{ch_test}
+
+    //MERGE_RESULTS (
+    //    ch_test
     //)
-    //ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
+    //ch_merged_csv = MERGE_RESULTS.out.merged_csv
 
-    //
-    // MODULE: Pipeline reporting
-    //
-    ch_software_versions
-       .map { it -> if (it) [ it.baseName, it ] }
-       .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
-
-    GET_SOFTWARE_VERSIONS (
-        ch_software_versions.map { it }.collect()
+    /*
+    * MODULE: Parse software version numbers
+    */
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_software_versions.unique().collectFile()
     )
 
     //
     // MODULE: MultiQC
     //
-    //workflow_summary    = WorkflowBench.paramsSummaryMultiqc(workflow, summary_params)
-    //ch_workflow_summary = Channel.value(workflow_summary)
+    workflow_summary    = WorkflowBench.paramsSummaryMultiqc(workflow, summary_params)
+    ch_workflow_summary = Channel.value(workflow_summary)
 
-    //ch_multiqc_files = Channel.empty()
-    //ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
-    //ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
-    //ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    //ch_multiqc_files = ch_multiqc_files.mix(GET_SOFTWARE_VERSIONS.out.yaml.collect())
-    //ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = Channel.empty()
+    ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
 
-    //MULTIQC (
-    //    ch_multiqc_files.collect()
-    //)
-    //multiqc_report       = MULTIQC.out.report.toList()
-    //ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
+    MULTIQC (
+        ch_multiqc_files.collect()
+    )
+    multiqc_report       = MULTIQC.out.report.toList()
+    ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
 }
 
 /*

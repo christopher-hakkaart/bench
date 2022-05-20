@@ -40,9 +40,11 @@ def check_samplesheet(file_in, file_out):
     """
     This function checks that the samplesheet follows the following structure:
 
-    sample,variant_type,genome,bench_set,truth_set
-    SAMPLE,SHORT,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz
-    SAMPLE,STRUCTURAL,GRCH38,SAMPLE.vcf.gz,TRUTH.vcf.gz
+    sample,variant_type,genome,bench_set,truth_set,high_conf
+    WORKFLOW1,SHORT,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,REGIONS.bed
+    WORKFLOW2,STRUCTURAL,GRCH37,SAMPLE.vcf.gz,TRUTH.vcf.gz,
+    WORKFLOW3,SHORT,GRCH37,SAMPLE.vcf.gz,,
+    WORKFLOW4,SHORT,GRCH38,SAMPLE.vcf.gz,,
 
     For an example see:
     https://raw.githubusercontent.com/christopher-hakkaart/testdata/test_benchmark.csv
@@ -52,35 +54,21 @@ def check_samplesheet(file_in, file_out):
     with open(file_in, "r") as fin:
 
         ## Check header
-        MIN_COLS = 4
-        # TODO nf-core: Update the column names for the input samplesheet
-        HEADER = ["sample", "variant_type", "genome", "bench_set", "truth_set"]
+        MIN_COLS = 6
+        HEADER = ["sample", "variant_type", "genome", "bench_set", "truth_set", "high_conf"]
+
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print("ERROR: Please check samplesheet header -> {} != {}".format(",".join(header), ",".join(HEADER)))
             sys.exit(1)
 
-        ## Check sample entries
+        ## Check all sample entries
         for line in fin:
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
-            # Check valid number of columns per row
-            if len(lspl) < len(HEADER):
-                print_error(
-                    "Invalid number of columns (minimum = {})!".format(len(HEADER)),
-                    "Line",
-                    line,
-                )
-            num_cols = len([x for x in lspl if x])
-            if num_cols < MIN_COLS:
-                print_error(
-                    "Invalid number of populated columns (minimum = {})!".format(MIN_COLS),
-                    "Line",
-                    line,
-                )
+            sample, variant_type, genome, bench_set, truth_set, high_conf  = lspl[: len(HEADER)]
 
             ## Check sample name entries
-            sample, variant_type, genome, bench_set, truth_set  = lspl[: len(HEADER)]
             sample = sample.replace(" ", "_")
             if not sample:
                 print_error("Sample entry has not been specified!", "Line", line)
@@ -110,9 +98,21 @@ def check_samplesheet(file_in, file_out):
                             "Line",
                             line,
                         )
+            
+            ## Check input bed file extensions
+            for hc in [high_conf]:
+                if hc:
+                    if hc.find(" ") != -1:
+                        print_error("High confidence regions file contains spaces!", "Line", line)
+                    if not hc.endswith(".bed.gz") and bt.endswith(".bed"):
+                        print_error(
+                            "High confidence regions file does not have extension '.bed.gz' or '.bed'!",
+                            "Line",
+                            line,
+                        )
 
-            ## Create sample mapping dictionary = { sample: [ genome, bench_set, truth_set ] }
-            sample_info = [variant_type, genome, bench_set, truth_set]
+            ## Create sample mapping dictionary = { sample: [ variant_type, genome, bench_set, truth_set, high_conf ] }
+            sample_info = [variant_type, genome, bench_set, truth_set, high_conf]
 
             if sample not in sample_dict:
                 sample_dict[sample] = [sample_info]
@@ -127,7 +127,7 @@ def check_samplesheet(file_in, file_out):
         out_dir = os.path.dirname(file_out)
         make_dir(out_dir)
         with open(file_out, "w") as fout:
-            fout.write(",".join(["sample", "variant_type", "genome", "bench_set", "truth_set"]) + "\n")
+            fout.write(",".join(["sample", "variant_type", "genome", "bench_set", "truth_set", "high_conf"]) + "\n")
             for sample in sorted(sample_dict.keys()):
 
                 ## Check that multiple runs of the same sample are of the same datatype
@@ -135,8 +135,7 @@ def check_samplesheet(file_in, file_out):
                     print_error("Multiple runs of a sample must be of the same datatype!", "Sample: {}".format(sample))
 
                 for idx, val in enumerate(sample_dict[sample]):
-                    fout.write(",".join(["{}_T{}".format(sample, idx + 1)] + val) + "\n")
-                    # TODO: check T into truthset name when functionality added.
+                    fout.write(",".join(["{}_{}".format(sample, val[0].lower())] + val) + "\n")
     else:
         print_error("No entries to process!", "Samplesheet: {}".format(file_in))
 

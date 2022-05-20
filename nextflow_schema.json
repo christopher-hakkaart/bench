@@ -44,6 +44,124 @@
                 }
             }
         },
+        "truvari_options": {
+            "title": "Truvari bench options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Given a benchmark and callset, will calculate the recall/precision/f-measure.",
+            "properties": {
+                "refdist": {
+                    "type": "integer",
+                    "description": "Reference distance",
+                    "default": 500,
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Max reference location distance."
+                },
+                "pctsim": {
+                    "type": "number",
+                    "description": "Percentage similarity",
+                    "default": 0.7,
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Minimum percent allele sequence similarity. Set to 0 to ignore."
+                },
+                "pctsize": {
+                    "type": "number",
+                    "description": "Percentage size",
+                    "default": 0.7,
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Ratio of min(base_size, comp_size)/max(base_size, comp_size)."
+                },
+                "pctovl": {
+                    "type": "number",
+                    "description": "Percentage overlap",
+                    "default": 0.0,
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Minimum percentage of reciprocal overlap for DEL events."
+                },
+                "typeignore": {
+                    "type": "boolean",
+                    "description": "Ignore SV type",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Variant types don't need to match to compare."
+                },
+                "giabreport": {
+                    "type": "boolean",
+                    "description": "Generate GIAB report.",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Parse output TPs/FNs for GIAB annotations and create a report."
+                },
+                "prog": {
+                    "type": "boolean",
+                    "description": "Progress monitoring.",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Turn on progress monitoring."
+                },
+                "buffer": {
+                    "type": "number",
+                    "description": "Buffer",
+                    "default": 0.1,
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Percent of the reference span to buffer the haplotype sequence created."
+                },
+                "use_lev": {
+                    "type": "boolean",
+                    "description": "Use Levenshtein distance ratio",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Use the Levenshtein distance ratio instead of edlib editDistance ratio."
+                },
+                "gtcomp": {
+                    "type": "boolean",
+                    "description": "Compare GenoTypes",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Compare genotypes of matching calls."
+                },
+                "sizemin": {
+                    "type": "integer",
+                    "description": "Minimum size",
+                    "default": 50,
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Minimum variant size to consider for comparison."
+                },
+                "sizefilt": {
+                    "type": "integer",
+                    "description": "Minimum variant size to load",
+                    "default": 30,
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Minimum variant size to load into IntervalTree."
+                },
+                "sizemax": {
+                    "type": "integer",
+                    "description": "Maximum variant size ",
+                    "default": 50000,
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Maximum variant size to consider for comparison."
+                },
+                "passonly": {
+                    "type": "boolean",
+                    "description": "Filter PASS variants calls",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Only consider calls with FILTER == PASS."
+                },
+                "no_ref": {
+                    "type": "string",
+                    "description": "Exclude reference calls",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Don't include 0/0 or ./. GT calls from all (a), base (b), or comp (c) vcfs."
+                },
+                "multimatch": {
+                    "type": "boolean",
+                    "description": "Allow variant multimatch",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Allow base calls to match multiple comparison calls, and vice versa. Output vcfs will have redundant entries."
+                },
+                "includebed": {
+                    "type": "string",
+                    "description": "Target bed regions",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Bed file of regions in the genome to include only calls overlapping"
+                }
+            }
+        },
         "reference_genome_options": {
             "title": "Reference genome options",
             "type": "object",
@@ -79,6 +197,32 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                }
+            }
+        },
+        "report_options": {
+            "title": "Report options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "skip_highconf.",
+            "properties": {
+                "skip_highconf": {
+                    "type": "boolean",
+                    "description": "Defines if analysis should be restricted bed regions.",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Defines if analysis should be restricted bed regions."
+                },
+                "skip_short_report": {
+                    "type": "boolean",
+                    "description": "Skip custom report generation using hap.py results.",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Skip custom report generation using hap.py results."
+                },
+                "skip_sv_report": {
+                    "type": "boolean",
+                    "description": "Skip custom report generation using truvari results.",
+                    "fa_icon": "fas fa-book",
+                    "help_text": "Skip custom report generation using truvari results."
                 }
             }
         },
@@ -276,7 +420,13 @@
             "$ref": "#/definitions/input_output_options"
         },
         {
+            "$ref": "#/definitions/truvari_options"
+        },
+        {
             "$ref": "#/definitions/reference_genome_options"
+        },
+        {
+            "$ref": "#/definitions/report_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"

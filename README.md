@@ -17,7 +17,7 @@
 ## Introduction
 
 <!-- TODO nf-core: Write a 1-2 sentence summary of what data the pipeline is for and what it does -->
-**nf-core/bench** is a bioinformatics best-practice analysis pipeline for benchmarking variant call files.
+**nf-core/bench** is a best-practice analysis pipeline for benchmarking variant call files. By default the pipeline will benchmark query variant call files against the GIAB truth sets for short and structural variants. However, defaults can be overwritten by specifying your own files in the sample sheet. Please note that by default the pipeline will only accept query variant call files that were mapped to the genomes matching the GIAB truth sets (GRCh37 or GRCh38 for short variants and GRCh37 for structural variants).
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
@@ -28,10 +28,17 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
 
-1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+1. Prepare files for benchmarking
+    * Prepare query `.vcf.gz` file
+    * Prepare truth `.vcf.gz` file 
+    * Prepare genome `.fa` file
+    * Prepare high confidence regions `.bed` file
+2. Benchmark short variant (SNPs and INDELs) using [`hap.py`](https://github.com/Illumina/hap.py)
+3. Benchmark structural variant (DELs and INSs) using [`truvari`](https://github.com/ACEnglish/truvari)
 
 ## Quick Start
+
+_Please note that some tools have not yet been containerised and the workflow will only work if you are using conda_
 
 1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=21.04.0`)
 
@@ -61,9 +68,7 @@ The nf-core/bench pipeline comes with documentation about the pipeline [usage](h
 
 ## Credits
 
-nf-core/bench was originally written by Christopher Hakkaart.
-
-We thank the following people for their extensive assistance in the development of this pipeline:
+nf-core/bench was originally written by Christopher Hakkaart from the [Institute of Medical Genetics and Applied Genomics](https://www.medizin.uni-tuebingen.de/de/das-klinikum/einrichtungen/institute/medizinische-genetik-und-angewandte-genomik), Nicholas Smith and Christian Mertes from the [Technical University of Munich](https://www.tum.de/en/), and Leon Brandhoff from the [University of Cologne](https://portal.uni-koeln.de/en/sub/uoc-home) for use by the [German Human Genome-Phenome Archive](https://www.ghga.de/).
 
 <!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 

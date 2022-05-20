@@ -50,7 +50,6 @@ workflow NFCORE_BENCH {
 
 //
 // WORKFLOW: Execute a single named workflow for the pipeline
-// See: https://github.com/nf-core/rnaseq/issues/619
 //
 workflow {
     NFCORE_BENCH ()
