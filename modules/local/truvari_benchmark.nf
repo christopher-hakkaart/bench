@@ -3,11 +3,11 @@ process TRUVARI_BENCHMARK {
     label 'process_medium'
 
     conda (params.enable_conda ? "conda-forge::truvari=3.2.0" : null)
-        //if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        //  container "https://depot.galaxyproject.org/singularity/truvari:3.2.0--pyhdfd78af_0 "
-        //} else {
-        //   container "quay.io/biocontainers/truvari:3.2.0--pyhdfd78af_0 "
-        //}
+        if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+          container "https://depot.galaxyproject.org/singularity/truvari:3.2.0--pyhdfd78af_0 "
+        } else {
+           container "quay.io/biocontainers/truvari:3.2.0--pyhdfd78af_0 "
+        }
 
     input:
     tuple val(meta), path(bench_gz), path(bench_tbi), path(truth_gz), path(truth_tbi), path(fasta), path(fai), path(bed), path(bed_gz), path(tbi)
