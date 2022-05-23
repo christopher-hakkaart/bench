@@ -155,14 +155,14 @@ workflow BENCH {
         .set{ch_sample_type}
 
     //
-    // SUBWORKFLOW: Benchamark short variants with hap.py
+    // SUBWORKFLOW: Benchmark short variants with hap.py
     //
     BENCHMARK_SHORT (
         ch_sample_type.short_ch
     )
     ch_happy_summary     = BENCHMARK_SHORT.out.ch_happy_summary
     ch_software_versions = ch_software_versions.mix(BENCHMARK_SHORT.out.happy_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(BENCHMARK_SHORT.out.short_plot_version.first().ifEmpty(null))
+    //ch_software_versions = ch_software_versions.mix(BENCHMARK_SHORT.out.short_plot_version.first().ifEmpty(null))
 
     //
     // SUBWORKFLOW: Benchamark sv variants with truvari
@@ -171,12 +171,12 @@ workflow BENCH {
         ch_sample_type.sv_ch
     )
     ch_truvari_summary    = BENCHMARK_SV.out.ch_truvari_summary
-    ch_truvari_table_size = BENCHMARK_SV.out.ch_truvari_table_size
-    ch_truvari_table_type = BENCHMARK_SV.out.ch_truvari_table_type
-    ch_truvari_table_sv   = BENCHMARK_SV.out.ch_truvari_table_sv
-    ch_truvari_svg        = BENCHMARK_SV.out.ch_truvari_svg
-    ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.truvari_version.first().ifEmpty(null))
-    ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.sv_plot_version.first().ifEmpty(null))
+    //ch_truvari_table_size = BENCHMARK_SV.out.ch_truvari_table_size
+    //ch_truvari_table_type = BENCHMARK_SV.out.ch_truvari_table_type
+    //ch_truvari_table_sv   = BENCHMARK_SV.out.ch_truvari_table_sv
+    //ch_truvari_svg        = BENCHMARK_SV.out.ch_truvari_svg
+    //ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.truvari_version.first().ifEmpty(null))
+    //ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.sv_plot_version.first().ifEmpty(null))
 
     //
     // SUBWORKFLOW: Merge results
