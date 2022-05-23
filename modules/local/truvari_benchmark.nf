@@ -2,11 +2,11 @@ process TRUVARI_BENCHMARK {
     tag "$meta.id"
     label 'process_medium'
 
-    conda (params.enable_conda ? "conda-forge::python=3.8.3" : null)
+    conda (params.enable_conda ? "conda-forge::truvari=3.2.0" : null)
         //if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        //  container "https://depot.galaxyproject.org/singularity/python:3.8.3"
+        //  container "https://depot.galaxyproject.org/singularity/truvari:3.2.0--pyhdfd78af_0 "
         //} else {
-        //   container "quay.io/biocontainers/python:3.8.3"
+        //   container "quay.io/biocontainers/truvari:3.2.0--pyhdfd78af_0 "
         //}
 
     input:
@@ -31,8 +31,6 @@ process TRUVARI_BENCHMARK {
     def includebed = params.includebed ? "--includebed $bed" : ""
 
     """
-    python3 -m pip install Truvari==3.2.0
-
     truvari bench \\
     -b $truth_gz \\
     -c $bench_gz \\
