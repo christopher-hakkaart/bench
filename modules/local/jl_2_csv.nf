@@ -7,7 +7,7 @@ process JL_2_CSV {
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/python:3.8.3"
     } else {
-        container "quay.io/biocontainers/python:3.8.3"
+        container "kubran/python3:v0"
     }
 
     input:
