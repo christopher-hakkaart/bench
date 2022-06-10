@@ -20,12 +20,12 @@ workflow BENCHMARK_SHORT {
         ch_happy_summary = HAPPY_BENCHMARK.out.happy_summary
         happy_version    = HAPPY_BENCHMARK.out.versions
 
-    //if(!params.skip_short_report) {
-        //PLOT_SHORT ( ch_happy_summary )
-            //ch_happy_svg       = PLOT_SHORT.out.truvari_plots
-            //short_plot_version = PLOT_SHORT.out.versions
+    if(!params.skip_short_report) {
+        PLOT_SHORT ( ch_happy_summary )
+            ch_happy_svg       = PLOT_SHORT.out.truvari_plots
+            short_plot_version = PLOT_SHORT.out.versions
 
-    //}
+    }
 
     emit:
     ch_happy_metrics
@@ -33,6 +33,6 @@ workflow BENCHMARK_SHORT {
     ch_happy_runinfo
     ch_happy_summary
     happy_version
-    //ch_happy_svg
-    //short_plot_version
+    ch_happy_svg
+    short_plot_version
 }
