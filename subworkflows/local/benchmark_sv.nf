@@ -33,22 +33,22 @@ workflow BENCHMARK_SV {
             ch_truvari_giab_csv = JL_2_CSV.out.csv
 
     }
-    //PLOT_SV ( ch_truvari_giab_csv )
-        //ch_truvari_table_size = PLOT_SV.out.truvari_table_size
-        //ch_truvari_table_type = PLOT_SV.out.truvari_table_type
-        //ch_truvari_table_sv = PLOT_SV.out.truvari_table_sv
-        //ch_truvari_svg = PLOT_SV.out.truvari_plots
-        //sv_plot_version = PLOT_SV.out.versions
+    PLOT_SV ( ch_truvari_giab_csv )
+        ch_truvari_table_size = PLOT_SV.out.truvari_table_size
+        ch_truvari_table_type = PLOT_SV.out.truvari_table_type
+        ch_truvari_table_sv = PLOT_SV.out.truvari_table_sv
+        ch_truvari_svg = PLOT_SV.out.truvari_plots
+        sv_plot_version = PLOT_SV.out.versions
 
     emit:
         ch_truvari_summary
         ch_truvari_vcf
         ch_truvari_log
         truvari_version
-        //ch_truvari_table_size
-        //ch_truvari_table_type
-        //ch_truvari_table_sv
-        //ch_truvari_svg
-        //sv_plot_version
+        ch_truvari_table_size
+        ch_truvari_table_type
+        ch_truvari_table_sv
+        ch_truvari_svg
+        sv_plot_version
 
 }
