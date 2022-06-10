@@ -83,6 +83,8 @@ def multiqc_report = []
 
 workflow BENCH {
 
+    println(params.genome)
+
     ch_software_versions = Channel.empty()
 
     //
@@ -100,27 +102,33 @@ workflow BENCH {
             }
         .set { sample_ch }
 
-    //
-    // SUBWORKFLOW: Prepare bench file
-    //
-    PREPARE_BENCH (
-        sample_ch.bench_ch
-    )
-    ch_bench = PREPARE_BENCH.out.ch_vcf
-    ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.bgzip_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.bcftools_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.tabix_version.first().ifEmpty(null))
+    //ONLY FOR GRCH37 PREPARE BENCH AND VCF FILES NEEDED
+    if (params.genome == 'GRCh37') {
+        //
+        // SUBWORKFLOW: Prepare bench file
+        //
+        PREPARE_BENCH(
+            sample_ch.bench_ch
+        )
+        ch_bench = PREPARE_BENCH.out.ch_vcf
+        ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.bgzip_version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.bcftools_version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(PREPARE_BENCH.out.tabix_version.first().ifEmpty(null))
 
-    //
-    // SUBWORKFLOW: Prepare truth file
-    //
-    PREPARE_TRUTH (
-        sample_ch.truth_ch
-    )
-    ch_truth = PREPARE_TRUTH.out.ch_vcf
-    ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.bgzip_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.bcftools_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.tabix_version.first().ifEmpty(null))
+        //
+        // SUBWORKFLOW: Prepare truth file
+        //
+        PREPARE_TRUTH(
+            sample_ch.truth_ch
+        )
+        ch_truth = PREPARE_TRUTH.out.ch_vcf
+        ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.bgzip_version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.bcftools_version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(PREPARE_TRUTH.out.tabix_version.first().ifEmpty(null))
+    } else {
+        ch_bench = sample_ch.bench_ch
+        ch_truth = sample_ch.truth_ch
+    }
 
     //
     // SUBWORKFLOW: Prepare genome files
@@ -162,7 +170,7 @@ workflow BENCH {
     )
     ch_happy_summary     = BENCHMARK_SHORT.out.ch_happy_summary
     ch_software_versions = ch_software_versions.mix(BENCHMARK_SHORT.out.happy_version.first().ifEmpty(null))
-    //ch_software_versions = ch_software_versions.mix(BENCHMARK_SHORT.out.short_plot_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(BENCHMARK_SHORT.out.short_plot_version.first().ifEmpty(null))
 
     //
     // SUBWORKFLOW: Benchamark sv variants with truvari
@@ -171,12 +179,12 @@ workflow BENCH {
         ch_sample_type.sv_ch
     )
     ch_truvari_summary    = BENCHMARK_SV.out.ch_truvari_summary
-    //ch_truvari_table_size = BENCHMARK_SV.out.ch_truvari_table_size
-    //ch_truvari_table_type = BENCHMARK_SV.out.ch_truvari_table_type
-    //ch_truvari_table_sv   = BENCHMARK_SV.out.ch_truvari_table_sv
-    //ch_truvari_svg        = BENCHMARK_SV.out.ch_truvari_svg
-    //ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.truvari_version.first().ifEmpty(null))
-    //ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.sv_plot_version.first().ifEmpty(null))
+    ch_truvari_table_size = BENCHMARK_SV.out.ch_truvari_table_size
+    ch_truvari_table_type = BENCHMARK_SV.out.ch_truvari_table_type
+    ch_truvari_table_sv   = BENCHMARK_SV.out.ch_truvari_table_sv
+    ch_truvari_svg        = BENCHMARK_SV.out.ch_truvari_svg
+    ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.truvari_version.first().ifEmpty(null))
+    ch_software_versions  = ch_software_versions.mix(BENCHMARK_SV.out.sv_plot_version.first().ifEmpty(null))
 
     //
     // SUBWORKFLOW: Merge results
